@@ -28,7 +28,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const registerUser = async (req, res) => {
-  const { username, fullName, email, password, confirmPassword } = req.body;
+  const { username, fullName, email, password, confirmPassword, role } = req.body;
 
   // Validasi input menggunakan Joi
   const { error } = registerSchema.validate({
@@ -37,6 +37,7 @@ const registerUser = async (req, res) => {
     email,
     password,
     confirmPassword,
+    role
   });
   if (error) {
     return res.status(400).json({
@@ -75,10 +76,10 @@ const registerUser = async (req, res) => {
 
     // Simpan data pengguna dan kode verifikasi ke database
     const insertQuery = `
-      INSERT INTO email_verifications (username, full_name, email, password, verification_code, created_at)
-      VALUES ($1, $2, $3, $4, $5, NOW())
+      INSERT INTO email_verifications (username, full_name, email, password, role, verification_code, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
     `;
-    await pool.query(insertQuery, [username, fullName, email, hashedPassword, verificationCode]);
+    await pool.query(insertQuery, [username, fullName, email, hashedPassword, role, verificationCode]);
 
     // Kirim email verifikasi
     const mailOptions = {

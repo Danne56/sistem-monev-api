@@ -1,6 +1,5 @@
 const Joi = require("joi");
 
-// Schema validasi menggunakan Joi untuk registrasi
 const registerSchema = Joi.object({
   username: Joi.string().alphanum().min(3).max(30).required().messages({
     "string.alphanum": `"username" hanya boleh berisi huruf dan angka`,
@@ -29,6 +28,10 @@ const registerSchema = Joi.object({
   confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
     "any.only": `"confirmPassword" harus sama dengan "password"`,
     "any.required": `"confirmPassword" wajib diisi`,
+  }),
+  role: Joi.string().valid("admin", "pengelola", "pengguna", "dinas").required().messages({
+    "any.only": `"role" hanya boleh diisi dengan "admin", "pengelola", "pengguna", atau "dinas"`,
+    "any.required": `"role" wajib diisi`,
   }),
 });
 
