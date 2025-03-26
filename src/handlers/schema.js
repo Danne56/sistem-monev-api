@@ -46,4 +46,26 @@ const loginSchema = Joi.object({
   }),
 });
 
-module.exports = { registerSchema, loginSchema };
+const kategoriSchema = Joi.object({
+  kd_kategori_desa_wisata: Joi.string().trim().max(10).required()
+    .messages({
+      "string.base": `"Kode kategori harus berupa teks"`,
+      "string.max": `"Kode kategori maksimal 10 karakter"`,
+      "any.required": `"Kode kategori wajib diisi"`,
+    }),
+  nama_kategori: Joi.string().trim().max(100).required()
+    .messages({
+      "string.base": "Nama kategori harus berupa teks",
+      "string.max": "Nama kategori maksimal 100 karakter",
+      "any.required": "Nama kategori wajib diisi",
+    }),
+  nilai: Joi.number().integer().min(0).max(100).required()
+    .messages({
+      "number.base": "Nilai harus berupa angka",
+      "number.min": "Nilai minimal adalah 0",
+      "number.max": "Nilai maksimal adalah 100",
+      "any.required": "Nilai wajib diisi",
+    }),
+});
+
+module.exports = { registerSchema, loginSchema, kategoriSchema };

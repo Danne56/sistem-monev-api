@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const authRoutes = require('./src/routes/authRoutes');
+const kategoriRoutes = require('./src/routes/kategoriRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -14,6 +15,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/authentication", authRoutes);
+app.use("/api", kategoriRoutes);
 
 app.use((req, res, next) => {
     res.status(404).json({
