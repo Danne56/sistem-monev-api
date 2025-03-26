@@ -35,4 +35,15 @@ const registerSchema = Joi.object({
   }),
 });
 
-module.exports = { registerSchema };
+const loginSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.email": `"email" tidak valid`,
+    "any.required": `"email" wajib diisi`,
+  }),
+  password: Joi.string().min(1).required().messages({
+    "string.empty": `"password" wajib diisi`,
+    "any.required": `"password" wajib diisi`,
+  }),
+});
+
+module.exports = { registerSchema, loginSchema };
