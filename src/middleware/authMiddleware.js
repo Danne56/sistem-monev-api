@@ -15,4 +15,17 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-module.exports = { authenticateToken };
+const checkRole = (requiredRole) => {
+  return (req, res, next) => {
+    const userRole = req.user.role;
+    if (userRole !== requiredRole) {
+      return res.status(403).json({
+        status: "fail",
+        message: `Hanya role ${requiredRole} yang dapat mengakses endpoint ini.`,
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { authenticateToken, checkRole };
