@@ -3,8 +3,8 @@
 1. **Clone Repository**:
 
    ```bash
-   git clone https://github.com/Danne56/sistem-monev.git
-   cd sistem-monev
+   git clone https://github.com/Danne56/sistem-monev-api.git
+   cd sistem-monev-api
    ```
 
 2. **Instal Dependensi**:
@@ -70,159 +70,14 @@
 
    Aplikasi akan berjalan di `http://localhost:5000`.
 
----
+## **Dokumentasi API**
 
-## **Penggunaan API**
+API ini didokumentasikan menggunakan **OpenAPI (Swagger)**. Anda dapat mengakses dokumentasi interaktif melalui Swagger UI.
 
-### **Autentikasi**
+### **Cara Mengakses Dokumentasi**
 
-#### **1. Registrasi Pengguna**
+- Setelah menjalankan aplikasi, buka browser dan akses URL berikut:
 
-- **URL**: `POST /authentication/register`
-- **Body**:
-
-  ```json
-  {
-    "username": "user123",
-    "fullName": "Nama Lengkap",
-    "email": "user@example.com",
-    "password": "password123",
-    "confirmPassword": "password123",
-    "role": "dinas"
-  }
-  ```
-
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "message": "Verification code has been sent to email"
-  }
-  ```
-
-#### **2. Verifikasi Email**
-
-- **URL**: `POST /authentication/verify`
-- **Body**:
-
-  ```json
-  {
-    "email": "user@example.com",
-    "verificationCode": "123456"
-  }
-  ```
-
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "message": "Akun berhasil diverifikasi"
-  }
-  ```
-
-#### **3. Login Pengguna**
-
-- **URL**: `POST /authentication/login`
-- **Body**:
-
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "message": "Login berhasil",
-    "token": "your_jwt_token"
-  }
-  ```
-
----
-
-### **Kategori Desa Wisata**
-
-#### **1. Tambah Kategori**
-
-- **URL**: `POST /api/kategori`
-- **Headers**:
-  - `Authorization: Bearer <JWT_TOKEN>`
-- **Body**:
-
-  ```json
-  {
-    "kd_kategori_desa_wisata": "KD001",
-    "nama_kategori": "Kategori Baru",
-    "nilai": 100
-  }
-  ```
-
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "message": "Kategori desa wisata berhasil ditambahkan"
-  }
-  ```
-
-#### **2. Dapatkan Semua Kategori**
-
-- **URL**: `GET /api/kategori`
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "data": [
-      {
-        "kd_kategori_desa_wisata": "KD001",
-        "nama_kategori": "Kategori Baru",
-        "nilai": 100
-      }
-    ]
-  }
-  ```
-
-#### **3. Perbarui Kategori**
-
-- **URL**: `PUT /api/kategori/:kd_kategori_desa_wisata`
-- **Headers**:
-  - `Authorization: Bearer <JWT_TOKEN>`
-- **Body**:
-
-  ```json
-  {
-    "nama_kategori": "Kategori Diperbarui",
-    "nilai": 200
-  }
-  ```
-
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "message": "Kategori desa wisata berhasil diperbarui"
-  }
-  ```
-
-#### **4. Hapus Kategori**
-
-- **URL**: `DELETE /api/kategori/:kd_kategori_desa_wisata`
-- **Headers**:
-  - `Authorization: Bearer <JWT_TOKEN>`
-- **Response**:
-
-  ```json
-  {
-    "status": "success",
-    "message": "Kategori desa wisata berhasil dihapus"
-  }
-  ```
+   ```bash
+   http://localhost:5000/api-docs
+   ```

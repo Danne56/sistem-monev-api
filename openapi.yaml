@@ -1,0 +1,179 @@
+openapi: 3.0.0
+info:
+  title: Sistem Monev API
+  description: API untuk manajemen desa wisata.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: Authentication
+    description: Operasi terkait autentikasi
+  - name: Kategori Desa Wisata
+    description: Operasi terkait kategori desa wisata
+
+paths:
+  /authentication/register:
+    post:
+      tags:
+        - Authentication
+      summary: Registrasi pengguna baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                fullName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '200':
+          description: Kode verifikasi berhasil dikirim ke email
+        '400':
+          description: Data input tidak valid
+
+  /authentication/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login pengguna
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Email atau password salah
+
+  /api/kategori:
+    get:
+      tags:
+        - Kategori Desa Wisata
+      summary: Dapatkan semua kategori desa wisata
+      responses:
+        '200':
+          description: Data kategori berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    kd_kategori_desa_wisata:
+                      type: string
+                    nama_kategori:
+                      type: string
+                    nilai:
+                      type: integer
+    post:
+      tags:
+        - Kategori Desa Wisata
+      summary: Tambahkan kategori baru
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kd_kategori_desa_wisata:
+                  type: string
+                nama_kategori:
+                  type: string
+                nilai:
+                  type: integer
+      responses:
+        '201':
+          description: Kategori berhasil ditambahkan
+        '403':
+          description: Hanya role "dinas" yang dapat menambahkan kategori
+
+  /api/kategori/{kd_kategori_desa_wisata}:
+    put:
+      tags:
+        - Kategori Desa Wisata
+      summary: Perbarui data kategori berdasarkan ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: kd_kategori_desa_wisata
+          required: true
+          schema:
+            type: string
+          description: Kode unik kategori desa wisata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_kategori:
+                  type: string
+                nilai:
+                  type: integer
+      responses:
+        '200':
+          description: Kategori berhasil diperbarui
+        '403':
+          description: Hanya role "dinas" yang dapat memperbarui kategori
+        '404':
+          description: Kategori tidak ditemukan
+
+    delete:
+      tags:
+        - Kategori Desa Wisata
+      summary: Hapus kategori berdasarkan ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: kd_kategori_desa_wisata
+          required: true
+          schema:
+            type: string
+          description: Kode unik kategori desa wisata
+      responses:
+        '200':
+          description: Kategori berhasil dihapus
+        '403':
+          description: Hanya role "dinas" yang dapat menghapus kategori
+        '404':
+          description: Kategori tidak ditemukan
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

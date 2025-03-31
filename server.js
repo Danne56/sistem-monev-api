@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./src/routes/authRoutes');
 const kategoriRoutes = require('./src/routes/kategoriRoutes');
 require('dotenv').config();
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
 
 const app = express();
 app.use(bodyParser.json());
@@ -12,6 +14,12 @@ app.use((req, res, next) => {
     console.log(req.method, req.url);  // Menampilkan metode dan URL dari request
     next();  // Melanjutkan ke middleware selanjutnya
 });
+
+// Load file OpenAPI YAML
+const swaggerDocument = YAML.load("./openapi.yaml");
+
+// Serve Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
 app.use("/authentication", authRoutes);
