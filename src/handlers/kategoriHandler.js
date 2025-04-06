@@ -1,5 +1,4 @@
 require("dotenv").config();
-const { Pool } = require("pg");
 const { kategoriSchema } = require("./schema");
 const pool = require("../config/db");
 
