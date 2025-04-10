@@ -68,4 +68,66 @@ const kategoriSchema = Joi.object({
     }),
 });
 
-module.exports = { registerSchema, loginSchema, kategoriSchema };
+const desaWisataSchema = Joi.object({
+  kd_desa: Joi.string().max(10).required()
+    .messages({
+      "string.base": `"Kode desa" harus berupa teks`,
+      "string.max": `"Kode desa" maksimal 10 karakter`,
+      "any.required": `"Kode desa" wajib diisi`,
+    }),
+  provinsi: Joi.string().max(100).required()
+    .messages({
+      "string.base": `"Provinsi" harus berupa teks`,
+      "string.max": `"Provinsi" maksimal 100 karakter`,
+      "any.required": `"Provinsi" wajib diisi`,
+    }),
+  kabupaten: Joi.string().max(100).required()
+    .messages({
+      "string.base": `"Kabupaten" harus berupa teks`,
+      "string.max": `"Kabupaten" maksimal 100 karakter`,
+      "any.required": `"Kabupaten" wajib diisi`,
+    }),
+  nama_desa: Joi.string().max(100).required()
+    .messages({
+      "string.base": `"Nama desa" harus berupa teks`,
+      "string.max": `"Nama desa" maksimal 100 karakter`,
+      "any.required": `"Nama desa" wajib diisi`,
+    }),
+  nama_popular: Joi.string().max(100).allow(null, "")
+    .messages({
+      "string.base": `"Nama populer" harus berupa teks`,
+      "string.max": `"Nama populer" maksimal 100 karakter`,
+    }),
+  alamat: Joi.string().required()
+    .messages({
+      "string.base": `"Alamat" harus berupa teks`,
+      "any.required": `"Alamat" wajib diisi`,
+    }),
+  pengelola: Joi.string().max(100).required()
+    .messages({
+      "string.base": `"Pengelola" harus berupa teks`,
+      "string.max": `"Pengelola" maksimal 100 karakter`,
+      "any.required": `"Pengelola" wajib diisi`,
+    }),
+  nomor_telepon: Joi.string().max(20).required()
+    .messages({
+      "string.base": `"Nomor telepon" harus berupa teks`,
+      "string.max": `"Nomor telepon" maksimal 20 karakter`,
+      "any.required": `"Nomor telepon" wajib diisi`,
+    }),
+  email: Joi.string().email().max(100).required()
+    .messages({
+      "string.base": `"Email" harus berupa teks`,
+      "string.email": `"Email" tidak valid`,
+      "string.max": `"Email" maksimal 100 karakter`,
+      "any.required": `"Email" wajib diisi`,
+    }),
+  kd_kategori_desa_wisata: Joi.string().max(10).required()
+    .messages({
+      "string.base": `"Kode kategori desa wisata" harus berupa teks`,
+      "string.max": `"Kode kategori desa wisata" maksimal 10 karakter`,
+      "any.required": `"Kode kategori desa wisata" wajib diisi`,
+    }),
+});
+
+module.exports = { registerSchema, loginSchema, kategoriSchema, desaWisataSchema };

@@ -62,6 +62,40 @@
      );
      ```
 
+     ### **Tabel `desa_wisata`**
+
+     ```sql
+     CREATE TABLE desa_wisata (
+         kd_desa VARCHAR(10) primary key,
+         provinsi VARCHAR(50) NOT NULL,
+         kabupaten VARCHAR(50) NOT NULL,
+         nama_desa VARCHAR(50) NOT NULL,
+         nama_popular VARCHAR(50),
+         alamat TEXT,
+         pengelola VARCHAR(50),
+         nomor_telepon VARCHAR(20),
+         email VARCHAR(50) NOT NULL,
+         kd_kategori_desa_wisata VARCHAR(10) NOT NULL,
+         foreign KEY (email) references users (email),
+         foreign KEY (kd_kategori_desa_wisata) references kategori_desa_wisata (kd_kategori_desa_wisata)
+     );
+     ```
+
+     ### **Tabel `permintaan`**
+
+     ```sql
+     create table permintaan (
+         kd_permintaan TEXT primary key,
+         email VARCHAR(50) not null,
+         kd_desa VARCHAR(10) not null,
+         status_permintaan VARCHAR(10) not null check (
+            status_permintaan in ('diterima', 'diproses', 'selesai', 'ditolak')
+         ),
+         foreign KEY (email) references users (email),
+         foreign KEY (kd_desa) references desa_wisata (kd_desa)
+     );
+     ```
+
 5. **Jalankan Aplikasi**:
 
    ```bash
