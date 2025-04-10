@@ -12,6 +12,8 @@ tags:
     description: Operasi terkait kategori desa wisata
   - name: Desa Wisata
     description: Operasi terkait manajemen desa wisata
+  - name: Deskripsi Wisata
+    description: Operasi terkait deskripsi wisata
 
 paths:
   /authentication/register:
@@ -450,6 +452,265 @@ paths:
           description: Hanya role "pengelola" yang dapat menghapus desa wisata
         '404':
           description: Desa wisata tidak ditemukan
+        '500':
+          description: Internal server error
+
+  /api/deskripsi-wisata:
+    post:
+      tags:
+        - Deskripsi Wisata
+      summary: Tambahkan deskripsi wisata baru
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kd_desa:
+                  type: string
+                penjelasan_umum:
+                  type: string
+                fasilitas:
+                  type: string
+                dokumentasi_desa:
+                  type: string
+                gambar_atraksi:
+                  type: string
+                nama_atraksi:
+                  type: string
+                kategori_atraksi:
+                  type: string
+                gambar_penginapan:
+                  type: string
+                nama_penginapan:
+                  type: string
+                harga_penginapan:
+                  type: number
+                gambar_paket_wisata:
+                  type: string
+                nama_paket_wisata:
+                  type: string
+                harga_paket_wisata:
+                  type: number
+                gambar_suvenir:
+                  type: string
+                nama_suvenir:
+                  type: string
+                harga_suvenir:
+                  type: number
+      responses:
+        '201':
+          description: Deskripsi wisata berhasil ditambahkan
+        '400':
+          description: Data input tidak valid
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '403':
+          description: Hanya role "pengelola" yang dapat menambahkan deskripsi wisata
+        '404':
+          description: Desa wisata tidak ditemukan
+        '500':
+          description: Internal server error
+
+    get:
+      tags:
+        - Deskripsi Wisata
+      summary: Dapatkan semua deskripsi wisata
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Data deskripsi wisata berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    kd_desa:
+                      type: string
+                    penjelasan_umum:
+                      type: string
+                    fasilitas:
+                      type: string
+                    dokumentasi_desa:
+                      type: string
+                    gambar_atraksi:
+                      type: string
+                    nama_atraksi:
+                      type: string
+                    kategori_atraksi:
+                      type: string
+                    gambar_penginapan:
+                      type: string
+                    nama_penginapan:
+                      type: string
+                    harga_penginapan:
+                      type: number
+                    gambar_paket_wisata:
+                      type: string
+                    nama_paket_wisata:
+                      type: string
+                    harga_paket_wisata:
+                      type: number
+                    gambar_suvenir:
+                      type: string
+                    nama_suvenir:
+                      type: string
+                    harga_suvenir:
+                      type: number
+        '500':
+          description: Internal server error
+
+  /api/deskripsi-wisata/{kd_desa}:
+    get:
+      tags:
+        - Deskripsi Wisata
+      summary: Dapatkan deskripsi wisata berdasarkan ID desa
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: kd_desa
+          required: true
+          schema:
+            type: string
+          description: Kode unik desa wisata
+      responses:
+        '200':
+          description: Data deskripsi wisata berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kd_desa:
+                    type: string
+                  penjelasan_umum:
+                    type: string
+                  fasilitas:
+                    type: string
+                  dokumentasi_desa:
+                    type: string
+                  gambar_atraksi:
+                    type: string
+                  nama_atraksi:
+                    type: string
+                  kategori_atraksi:
+                    type: string
+                  gambar_penginapan:
+                    type: string
+                  nama_penginapan:
+                    type: string
+                  harga_penginapan:
+                    type: number
+                  gambar_paket_wisata:
+                    type: string
+                  nama_paket_wisata:
+                    type: string
+                  harga_paket_wisata:
+                    type: number
+                  gambar_suvenir:
+                    type: string
+                  nama_suvenir:
+                    type: string
+                  harga_suvenir:
+                    type: number
+        '404':
+          description: Deskripsi wisata tidak ditemukan
+        '500':
+          description: Internal server error
+
+    put:
+      tags:
+        - Deskripsi Wisata
+      summary: Perbarui deskripsi wisata berdasarkan ID desa
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: kd_desa
+          required: true
+          schema:
+            type: string
+          description: Kode unik desa wisata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                penjelasan_umum:
+                  type: string
+                fasilitas:
+                  type: string
+                dokumentasi_desa:
+                  type: string
+                gambar_atraksi:
+                  type: string
+                nama_atraksi:
+                  type: string
+                kategori_atraksi:
+                  type: string
+                gambar_penginapan:
+                  type: string
+                nama_penginapan:
+                  type: string
+                harga_penginapan:
+                  type: number
+                gambar_paket_wisata:
+                  type: string
+                nama_paket_wisata:
+                  type: string
+                harga_paket_wisata:
+                  type: number
+                gambar_suvenir:
+                  type: string
+                nama_suvenir:
+                  type: string
+                harga_suvenir:
+                  type: number
+      responses:
+        '200':
+          description: Deskripsi wisata berhasil diperbarui
+        '400':
+          description: Data input tidak valid
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '403':
+          description: Hanya role "pengelola" yang dapat memperbarui deskripsi wisata
+        '404':
+          description: Deskripsi wisata tidak ditemukan
+        '500':
+          description: Internal server error
+
+    delete:
+      tags:
+        - Deskripsi Wisata
+      summary: Hapus deskripsi wisata berdasarkan ID desa
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: kd_desa
+          required: true
+          schema:
+            type: string
+          description: Kode unik desa wisata
+      responses:
+        '200':
+          description: Deskripsi wisata berhasil dihapus
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '403':
+          description: Hanya role "pengelola" yang dapat menghapus deskripsi wisata
+        '404':
+          description: Deskripsi wisata tidak ditemukan
         '500':
           description: Internal server error
 

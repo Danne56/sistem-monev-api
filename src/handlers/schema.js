@@ -130,4 +130,85 @@ const desaWisataSchema = Joi.object({
     }),
 });
 
-module.exports = { registerSchema, loginSchema, kategoriSchema, desaWisataSchema };
+const deskripsiWisataSchema = Joi.object({
+  penjelasan_umum: Joi.string().required()
+    .messages({
+      "string.base": `"Penjelasan umum" harus berupa teks`,
+      "any.required": `"Penjelasan umum" wajib diisi`,
+    }),
+  fasilitas: Joi.string().required()
+    .messages({
+      "string.base": `"Fasilitas" harus berupa teks`,
+      "any.required": `"Fasilitas" wajib diisi`,
+    }),
+  dokumentasi_desa: Joi.string().required()
+    .messages({
+      "string.base": `"Dokumentasi desa" harus berupa teks`,
+      "any.required": `"Dokumentasi desa" wajib diisi`,
+    }),
+  gambar_atraksi: Joi.string().required()
+    .messages({
+      "string.base": `"Gambar atraksi" harus berupa teks`,
+      "any.required": `"Gambar atraksi" wajib diisi`,
+    }),
+  nama_atraksi: Joi.string().required()
+    .messages({
+      "string.base": `"Nama atraksi" harus berupa teks`,
+      "any.required": `"Nama atraksi" wajib diisi`,
+    }),
+  kategori_atraksi: Joi.string().required()
+    .messages({
+      "string.base": `"Kategori atraksi" harus berupa teks`,
+      "any.required": `"Kategori atraksi" wajib diisi`,
+    }),
+  gambar_penginapan: Joi.string().required()
+    .messages({
+      "string.base": `"Gambar penginapan" harus berupa teks`,
+      "any.required": `"Gambar penginapan" wajib diisi`,
+    }),
+  nama_penginapan: Joi.string().required()
+    .messages({
+      "string.base": `"Nama penginapan" harus berupa teks`,
+      "any.required": `"Nama penginapan" wajib diisi`,
+    }),
+  harga_penginapan: Joi.number().integer().min(0).required()
+    .messages({
+      "number.base": `"Harga penginapan" harus berupa angka`,
+      "number.min": `"Harga penginapan minimal adalah 0`,
+      "any.required": `"Harga penginapan" wajib diisi`,
+    }),
+  gambar_paket_wisata: Joi.string().required()
+    .messages({
+      "string.base": `"Gambar paket wisata" harus berupa teks`,
+      "any.required": `"Gambar paket wisata" wajib diisi`,
+    }),
+  nama_paket_wisata: Joi.string().required()
+    .messages({
+      "string.base": `"Nama paket wisata" harus berupa teks`,
+      "any.required": `"Nama paket wisata" wajib diisi`,
+    }),
+  harga_paket_wisata: Joi.number().integer().min(0).required()
+    .messages({
+      "number.base": `"Harga paket wisata" harus berupa angka`,
+      "number.min": `"Harga paket wisata minimal adalah 0`,
+      "any.required": `"Harga paket wisata" wajib diisi`,
+    }),
+  gambar_suvenir: Joi.string().required()
+    .messages({
+      "string.base": `"Gambar suvenir" harus berupa teks`,
+      "any.required": `"Gambar suvenir" wajib diisi`,
+    }),
+  nama_suvenir: Joi.string().required()
+    .messages({
+      "string.base": `"Nama suvenir" harus berupa teks`,
+      "any.required": `"Nama suvenir" wajib diisi`,
+    }),
+  harga_suvenir: Joi.number().integer().min(0).required()
+    .messages({
+      "number.base": `"Harga suvenir" harus berupa angka`,
+      "number.min": `"Harga suvenir minimal adalah 0`,
+      "any.required": `"Harga suvenir" wajib diisi`,
+    }),
+});
+
+module.exports = { registerSchema, loginSchema, kategoriSchema, desaWisataSchema, deskripsiWisataSchema };

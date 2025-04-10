@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./src/routes/authRoutes');
 const kategoriRoutes = require('./src/routes/kategoriRoutes');
 const desaWisataRoutes = require('./src/routes/desaWisataRoutes');
+const deskripsiWisataRoutes = require('./src/routes/deskripsiWisataRoutes');
 require('dotenv').config();
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
@@ -24,7 +25,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
 app.use("/authentication", authRoutes);
-app.use("/api", kategoriRoutes, desaWisataRoutes);
+app.use("/api", kategoriRoutes, desaWisataRoutes, deskripsiWisataRoutes);
 
 app.use((req, res, next) => {
     res.status(404).json({

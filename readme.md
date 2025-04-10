@@ -96,6 +96,32 @@
      );
      ```
 
+     ### **Tabel `deskripsi_wisata`**
+
+     ```sql
+     CREATE TABLE deskripsi_wisata (
+         kd_desa VARCHAR(10) NOT NULL,
+         penjelasan_umum TEXT,
+         fasilitas TEXT,
+         dokumentasi_desa TEXT,
+         gambar_atraksi TEXT,
+         nama_atraksi VARCHAR(100),
+         kategori_atraksi VARCHAR(50),
+         gambar_penginapan TEXT,
+         nama_penginapan VARCHAR(100),
+         harga_penginapan NUMERIC(12,2),
+         gambar_paket_wisata TEXT,
+         nama_paket_wisata VARCHAR(100),
+         harga_paket_wisata NUMERIC(12,2),
+         gambar_suvenir TEXT,
+         nama_suvenir VARCHAR(100),
+         harga_suvenir NUMERIC(12,2),
+         
+         PRIMARY KEY (kd_desa),
+         FOREIGN KEY (kd_desa) REFERENCES desa_wisata (kd_desa)
+     );
+     ```
+
 5. **Jalankan Aplikasi**:
 
    ```bash
