@@ -714,6 +714,155 @@ paths:
         '500':
           description: Internal server error
 
+  /api/status-desa:
+    post:
+      tags:
+        - Status Desa
+      summary: Menambahkan status desa baru
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kd_status:
+                  type: string
+                  example: STATUS001
+                kd_desa:
+                  type: string
+                  example: DES001
+                status:
+                  type: string
+                  enum: [aktif, perbaikan, tidak aktif, kurang terawat]
+                  example: aktif
+                keterangan:
+                  type: string
+                  example: Desa wisata telah aktif.
+              required:
+                - kd_status
+                - kd_desa
+                - status
+                - keterangan
+      responses:
+        '201':
+          description: Status desa berhasil ditambahkan
+        '400':
+          description: Permintaan tidak valid
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '403':
+          description: Hanya role "dinas" yang dapat menambahkan deskripsi wisata
+        '404':
+          description: Desa wisata tidak ditemukan
+        '500':
+          description: Internal server error
+
+    get:
+      tags:
+        - Status Desa
+      summary: Mendapatkan semua status desa
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daftar status desa berhasil diambil
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '500':
+          description: Internal server error
+
+  /api/status-desa/{kd_status}:
+    get:
+      tags:
+        - Status Desa
+      summary: Mendapatkan status desa berdasarkan kd_status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: kd_status
+          in: path
+          required: true
+          schema:
+            type: string
+            example: STATUS001
+      responses:
+        '200':
+          description: Status desa berhasil diambil
+        '404':
+          description: Status desa tidak ditemukan
+        '500':
+          description: Internal server error
+
+    put:
+      tags:
+        - Status Desa
+      summary: Memperbarui status desa berdasarkan kd_status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: kd_status
+          in: path
+          required: true
+          schema:
+            type: string
+            example: STATUS001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [aktif, perbaikan, tidak aktif, kurang terawat]
+                  example: perbaikan
+                keterangan:
+                  type: string
+                  example: Desa wisata sedang dalam perbaikan.
+              required:
+                - status
+                - keterangan
+      responses:
+        '200':
+          description: Status desa berhasil diperbarui
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '403':
+          description: Hanya role "pengelola" yang dapat menambahkan deskripsi wisata
+        '404':
+          description: Status desa tidak ditemukan
+        '500':
+          description: Internal server error
+
+    delete:
+      tags:
+        - Status Desa
+      summary: Menghapus status desa berdasarkan kd_status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: kd_status
+          in: path
+          required: true
+          schema:
+            type: string
+            example: STATUS001
+      responses:
+        '200':
+          description: Status desa berhasil dihapus
+        '401':
+          description: Akses ditolak. Token tidak ditemukan.
+        '403':
+          description: Hanya role "pengelola" yang dapat menambahkan deskripsi wisata
+        '404':
+          description: Status desa tidak ditemukan
+        '500':
+          description: Internal server error
+
 components:
   securitySchemes:
     bearerAuth:

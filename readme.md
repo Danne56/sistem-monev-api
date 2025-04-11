@@ -122,6 +122,21 @@
      );
      ```
 
+     ### **Tabel `status_desa`**
+
+     ```sql
+     CREATE TABLE status_desa (
+        kd_status TEXT PRIMARY KEY,
+        kd_desa TEXT NOT NULL,
+        status VARCHAR(20) NOT NULL CHECK (
+            status IN ('aktif', 'perbaikan', 'tidak aktif', 'kurang terawat')
+        ),
+        keterangan TEXT,
+        tanggal_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (kd_desa) REFERENCES desa_wisata(kd_desa)
+     );
+     ```
+
 5. **Jalankan Aplikasi**:
 
    ```bash
