@@ -121,6 +121,10 @@ const desaWisataSchema = Joi.object({
 });
 
 const deskripsiWisataSchema = Joi.object({
+  kd_desa: Joi.string().required().messages({
+    "string.base": `"Kode desa" harus berupa teks`,
+    "any.required": `"Kode desa" wajib diisi`,
+  }),
   penjelasan_umum: Joi.string().required().messages({
     "string.base": `"Penjelasan umum" harus berupa teks`,
     "any.required": `"Penjelasan umum" wajib diisi`,
