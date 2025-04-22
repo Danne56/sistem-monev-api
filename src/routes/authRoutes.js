@@ -2,12 +2,16 @@ const express = require("express");
 const { registerUser } = require("../handlers/userHandler");
 const { verifyAccount } = require("../handlers/verifyAccountHandler");
 const { loginUser } = require("../handlers/loginHandler");
+const { authenticateToken } = require("../middleware/authMiddleware");
+const { logoutUser } = require("../handlers/logoutHandler");
+const { checkTokenBlacklist } = require("../middleware/checkTokenBlacklist");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/verify", verifyAccount);
 router.post("/login", loginUser);
+router.post("/logout", authenticateToken, checkTokenBlacklist, logoutUser);
 
 // Hanya di development
 if (process.env.NODE_ENV === "development") {
