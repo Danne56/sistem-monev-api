@@ -1,10 +1,18 @@
-const { Pool } = require("pg");
 const pool = require("../config/db");
 const { deskripsiWisataSchema } = require("../handlers/schema");
 
 // Fungsi untuk menambahkan deskripsi wisata
 const addDeskripsiWisata = async (req, res) => {
-  const { kd_desa, penjelasan_umum, fasilitas, dokumentasi_desa, gambar_atraksi, nama_atraksi, kategori_atraksi, gambar_penginapan, nama_penginapan, harga_penginapan, gambar_paket_wisata, nama_paket_wisata, harga_paket_wisata, gambar_suvenir, nama_suvenir, harga_suvenir } = req.body;
+  const {
+    kd_desa,
+    penjelasan_umum,
+    fasilitas,
+    dokumentasi_desa,
+    atraksi,
+    penginapan,
+    paket_wisata,
+    suvenir,
+  } = req.body;
 
   // Validasi input menggunakan Joi
   const { error } = deskripsiWisataSchema.validate({
@@ -12,18 +20,10 @@ const addDeskripsiWisata = async (req, res) => {
     penjelasan_umum,
     fasilitas,
     dokumentasi_desa,
-    gambar_atraksi,
-    nama_atraksi,
-    kategori_atraksi,
-    gambar_penginapan,
-    nama_penginapan,
-    harga_penginapan,
-    gambar_paket_wisata,
-    nama_paket_wisata,
-    harga_paket_wisata,
-    gambar_suvenir,
-    nama_suvenir,
-    harga_suvenir,
+    atraksi,
+    penginapan,
+    paket_wisata,
+    suvenir,
   });
 
   if (error) {
@@ -51,16 +51,19 @@ const addDeskripsiWisata = async (req, res) => {
 
     // Insert data deskripsi wisata
     const insertQuery = `
-      INSERT INTO deskripsi_wisata (
-        kd_desa, penjelasan_umum, fasilitas, dokumentasi_desa, gambar_atraksi, nama_atraksi, kategori_atraksi,
-        gambar_penginapan, nama_penginapan, harga_penginapan, gambar_paket_wisata, nama_paket_wisata, harga_paket_wisata,
-        gambar_suvenir, nama_suvenir, harga_suvenir
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-    `;
+    INSERT INTO deskripsi_wisata (
+      kd_desa, penjelasan_umum, fasilitas, dokumentasi_desa, atraksi, penginapan, paket_wisata, suvenir
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  `;
     await client.query(insertQuery, [
-      kd_desa, penjelasan_umum, fasilitas, dokumentasi_desa, gambar_atraksi, nama_atraksi, kategori_atraksi,
-      gambar_penginapan, nama_penginapan, harga_penginapan, gambar_paket_wisata, nama_paket_wisata, harga_paket_wisata,
-      gambar_suvenir, nama_suvenir, harga_suvenir,
+      kd_desa,
+      penjelasan_umum,
+      fasilitas,
+      dokumentasi_desa,
+      JSON.stringify(atraksi),
+      JSON.stringify(penginapan),
+      JSON.stringify(paket_wisata),
+      JSON.stringify(suvenir),
     ]);
 
     await client.query("COMMIT");
@@ -69,7 +72,6 @@ const addDeskripsiWisata = async (req, res) => {
       status: "success",
       message: "Deskripsi wisata berhasil ditambahkan",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -78,7 +80,6 @@ const addDeskripsiWisata = async (req, res) => {
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }
@@ -94,7 +95,6 @@ const getAllDeskripsiWisata = async (req, res) => {
       status: "success",
       data: result.rows,
     });
-
   } catch (err) {
     console.error("Error fetching deskripsi wisata:", err);
     return res.status(500).json({
@@ -123,7 +123,6 @@ const getDeskripsiWisataByKdDesa = async (req, res) => {
       status: "success",
       data: result.rows[0],
     });
-
   } catch (err) {
     console.error("Error fetching deskripsi wisata:", err);
     return res.status(500).json({
@@ -140,18 +139,10 @@ const updateDeskripsiWisata = async (req, res) => {
     penjelasan_umum,
     fasilitas,
     dokumentasi_desa,
-    gambar_atraksi,
-    nama_atraksi,
-    kategori_atraksi,
-    gambar_penginapan,
-    nama_penginapan,
-    harga_penginapan,
-    gambar_paket_wisata,
-    nama_paket_wisata,
-    harga_paket_wisata,
-    gambar_suvenir,
-    nama_suvenir,
-    harga_suvenir,
+    atraksi,
+    penginapan,
+    paket_wisata,
+    suvenir,
   } = req.body;
 
   // Validasi input menggunakan Joi
@@ -159,18 +150,10 @@ const updateDeskripsiWisata = async (req, res) => {
     penjelasan_umum,
     fasilitas,
     dokumentasi_desa,
-    gambar_atraksi,
-    nama_atraksi,
-    kategori_atraksi,
-    gambar_penginapan,
-    nama_penginapan,
-    harga_penginapan,
-    gambar_paket_wisata,
-    nama_paket_wisata,
-    harga_paket_wisata,
-    gambar_suvenir,
-    nama_suvenir,
-    harga_suvenir,
+    atraksi,
+    penginapan,
+    paket_wisata,
+    suvenir,
   });
 
   if (error) {
@@ -199,16 +182,18 @@ const updateDeskripsiWisata = async (req, res) => {
     // Update data deskripsi wisata
     const updateQuery = `
       UPDATE deskripsi_wisata
-      SET penjelasan_umum = $1, fasilitas = $2, dokumentasi_desa = $3, gambar_atraksi = $4, nama_atraksi = $5,
-          kategori_atraksi = $6, gambar_penginapan = $7, nama_penginapan = $8, harga_penginapan = $9,
-          gambar_paket_wisata = $10, nama_paket_wisata = $11, harga_paket_wisata = $12,
-          gambar_suvenir = $13, nama_suvenir = $14, harga_suvenir = $15
-      WHERE kd_desa = $16
+      SET penjelasan_umum = $1, fasilitas = $2, dokumentasi_desa = $3, atraksi = $4, penginapan = $5, paket_wisata = $6, suvenir = $7
+      WHERE kd_desa = $8
     `;
     await client.query(updateQuery, [
-      penjelasan_umum, fasilitas, dokumentasi_desa, gambar_atraksi, nama_atraksi, kategori_atraksi,
-      gambar_penginapan, nama_penginapan, harga_penginapan, gambar_paket_wisata, nama_paket_wisata, harga_paket_wisata,
-      gambar_suvenir, nama_suvenir, harga_suvenir, kd_desa,
+      penjelasan_umum,
+      fasilitas,
+      dokumentasi_desa,
+      atraksi, // Data JSONB
+      penginapan, // Data JSONB
+      paket_wisata, // Data JSONB
+      suvenir, // Data JSONB
+      kd_desa,
     ]);
 
     await client.query("COMMIT");
@@ -217,7 +202,6 @@ const updateDeskripsiWisata = async (req, res) => {
       status: "success",
       message: "Deskripsi wisata berhasil diperbarui",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -226,7 +210,6 @@ const updateDeskripsiWisata = async (req, res) => {
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }
@@ -262,7 +245,6 @@ const deleteDeskripsiWisata = async (req, res) => {
       status: "success",
       message: "Deskripsi wisata berhasil dihapus",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -271,7 +253,6 @@ const deleteDeskripsiWisata = async (req, res) => {
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }
