@@ -5,13 +5,14 @@ const { loginUser } = require("../handlers/loginHandler");
 const { authenticateToken } = require("../middleware/authMiddleware");
 const { logoutUser } = require("../handlers/logoutHandler");
 const { checkTokenBlacklist } = require("../middleware/checkTokenBlacklist");
+const { checkRole } = require("../middleware/authMiddleware");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 router.post("/register", registerUser);
-router.post("/verify", verifyAccount);
 router.post("/login", loginUser);
 router.post("/logout", authenticateToken, checkTokenBlacklist, logoutUser);
+router.put("/verify/:email", authenticateToken, checkRole("admin"), verifyAccount);
 
 // Hanya di development
 if (process.env.NODE_ENV === "development") {
@@ -20,7 +21,7 @@ if (process.env.NODE_ENV === "development") {
     const mockUser = {
       id: 999,
       username: "dev_admin",
-      role: "dinas",
+      role: "admin",
       email: "dev@example.com",
     };
 
