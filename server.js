@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const bodyParser = require("body-parser");
 const authRoutes = require("./src/routes/authRoutes");
 const kategoriRoutes = require("./src/routes/kategoriRoutes");
 const desaWisataRoutes = require("./src/routes/desaWisataRoutes");
@@ -10,7 +9,7 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Debug Logging
 if (process.env.NODE_ENV === "development") {

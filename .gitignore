@@ -5,3 +5,7 @@ node_modules
 package-lock.json
 
 app.yaml
+
+service-account.json
+
+decoy.txt
