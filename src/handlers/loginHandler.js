@@ -49,6 +49,14 @@ const loginUser = async (req, res) => {
     }
 
     // Buat token JWT
+    const secret = process.env.NODE_ENV === "development"
+      ? process.env.JWT_SECRET_DEV
+      : process.env.JWT_SECRET;
+
+    if (!secret) {
+      return res.status(500).json({ status: "error", message: "Secret key tidak tersedia." });
+    }
+
     const token = jwt.sign(
       {
         id: user.id,
@@ -56,8 +64,8 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET,
-      { algorithm: "HS512", expiresIn: "1h" }
+      secret,
+      { expiresIn: "1d" }
     );
 
     return res.status(200).json({

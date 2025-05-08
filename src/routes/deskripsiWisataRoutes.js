@@ -1,41 +1,24 @@
 const express = require('express');
-const multer = require('multer');
-const { authenticateToken, checkRole } = require("../middleware/authMiddleware");
 const {
   addDeskripsiWisata,
   getAllDeskripsiWisata,
   getDeskripsiWisataByKdDesa,
   updateDeskripsiWisata,
   deleteDeskripsiWisata,
+  upload, // Import the upload middleware from handler
+  handleUploadErrors // Import the error handler from handler
 } = require("../handlers/deskripsiWisataHandler");
+const { authenticateToken, checkRole } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Multer setup with structured image fields
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
-
-// Define the fields and their limits
+// Define the fields and their limits for file uploads
 const imageFields = [
-  { name: 'atraksi', maxCount: 20 },
-  { name: 'penginapan', maxCount: 20 },
-  { name: 'paket_wisata', maxCount: 20 },
-  { name: 'suvenir', maxCount: 20 }
+  { name: 'atraksi', maxCount: 10 },
+  { name: 'penginapan', maxCount: 10 },
+  { name: 'paket_wisata', maxCount: 10 },
+  { name: 'suvenir', maxCount: 10 }
 ];
-
-// Middleware to handle upload errors
-const handleUploadErrors = (err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({ 
-      status: 'error', 
-      message: `Upload error: ${err.message}` 
-    });
-  }
-  next(err);
-};
 
 // GET all deskripsi wisata
 router.get('/deskripsi-wisata', authenticateToken, getAllDeskripsiWisata);
@@ -48,8 +31,8 @@ router.post(
   '/deskripsi-wisata',
   authenticateToken,
   checkRole("pengelola"),
-  upload.fields(imageFields),
-  handleUploadErrors,
+  handleUploadErrors, // Use error handler from handler
+  upload.fields(imageFields), // Use upload from handler
   addDeskripsiWisata
 );
 
@@ -58,8 +41,8 @@ router.put(
   '/deskripsi-wisata/:kd_desa',
   authenticateToken,
   checkRole("pengelola"),
-  upload.fields(imageFields),
-  handleUploadErrors,
+  handleUploadErrors, // Use error handler from handler
+  upload.fields(imageFields), // Use upload from handler
   updateDeskripsiWisata
 );
 

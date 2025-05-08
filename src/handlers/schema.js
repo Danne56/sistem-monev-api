@@ -179,44 +179,51 @@ const itemSchema = Joi.object({
 // Schema untuk validasi entitas (atraksi, penginapan, dll.)
 const entitySchema = Joi.object({
   nama: Joi.string().required().messages({
-    'string.empty': 'Nama tidak boleh kosong',
-    'any.required': 'Nama harus diisi'
+    'string.empty': 'Nama harus diisi',
+    'any.required': 'Nama wajib diisi'
   }),
-  deskripsi: Joi.string().allow('', null),
-  harga: Joi.number().allow(null),
-  gambar: Joi.string().allow('', null),
-  created_at: Joi.string().allow(null),
-  updated_at: Joi.string().allow(null)
+  deskripsi: Joi.string().required().messages({
+    'string.empty': 'Deskripsi harus diisi',
+    'any.required': 'Deskripsi wajib diisi'
+  }),
+  gambar: Joi.string().allow(null, '').optional().messages({
+    'string.base': 'Gambar harus berupa string'
+  }),
+  harga: Joi.number().allow(null).optional().messages({
+    'number.base': 'Harga harus berupa angka'
+  }),
+  created_at: Joi.string().optional(),
+  updated_at: Joi.string().optional()
 });
 
 /* ==============================
    Deskripsi Wisata Schema
    ============================== */
 
-const deskripsiWisataSchema = Joi.object({
-  penjelasan_umum: Joi.string().required().messages({
-    'string.empty': 'Penjelasan umum tidak boleh kosong',
-    'any.required': 'Penjelasan umum harus diisi'
-  }),
-  fasilitas: Joi.string().allow('', null),
-  dokumentasi_desa: Joi.string().allow('', null),
-  atraksi: Joi.array().items(entitySchema).default([]),
-  penginapan: Joi.array().items(entitySchema).default([]),
-  paket_wisata: Joi.array().items(
-    entitySchema.keys({
-      harga: Joi.number().allow(null).messages({
-        'number.base': 'Harga paket wisata harus berupa angka'
+   const deskripsiWisataSchema = Joi.object({
+    penjelasan_umum: Joi.string().required().messages({
+      'string.empty': 'Penjelasan umum tidak boleh kosong',
+      'any.required': 'Penjelasan umum harus diisi'
+    }),
+    fasilitas: Joi.string().allow('', null),
+    dokumentasi_desa: Joi.string().allow('', null),
+    atraksi: Joi.array().items(entitySchema).default([]),
+    penginapan: Joi.array().items(entitySchema).default([]),
+    paket_wisata: Joi.array().items(
+      entitySchema.keys({
+        harga: Joi.number().allow(null).required().messages({
+          'number.base': 'Harga paket wisata harus berupa angka'
+        })
       })
-    })
-  ).default([]),
-  suvenir: Joi.array().items(
-    entitySchema.keys({
-      harga: Joi.number().allow(null).messages({
-        'number.base': 'Harga suvenir harus berupa angka'
+    ).default([]),
+    suvenir: Joi.array().items(
+      entitySchema.keys({
+        harga: Joi.number().allow(null).required().messages({
+          'number.base': 'Harga suvenir harus berupa angka'
+        })
       })
-    })
-  ).default([])
-});
+    ).default([])
+  });
 
 module.exports = {
   registerSchema,
