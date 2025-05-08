@@ -17,23 +17,11 @@ const loginUser = async (req, res) => {
   }
 
   try {
-    // Cek apakah email sudah diverifikasi di tabel `users`
+    // Cek apakah email ada di tabel users
     const userQuery = "SELECT * FROM users WHERE email = $1";
     const userResult = await pool.query(userQuery, [email]);
 
     if (userResult.rows.length === 0) {
-      // Jika tidak ditemukan di `users`, cek di `email_verifications`
-      const verificationQuery = "SELECT * FROM email_verifications WHERE email = $1";
-      const verificationResult = await pool.query(verificationQuery, [email]);
-
-      if (verificationResult.rows.length > 0) {
-        return res.status(403).json({
-          status: "fail",
-          message: "Akun belum diverifikasi. Silakan cek email Anda.",
-        });
-      }
-
-      // Jika tidak ditemukan di kedua tabel, berarti email tidak terdaftar
       return res.status(404).json({
         status: "fail",
         message: "Email tidak terdaftar",
@@ -41,6 +29,15 @@ const loginUser = async (req, res) => {
     }
 
     const user = userResult.rows[0];
+
+    // Cek apakah akun belum diverifikasi
+    if (!user.is_verified) {
+      return res.status(403).json({
+        status: "fail",
+        message:
+          "Akun belum diverifikasi. Silakan tunggu verifikasi dari admin.",
+      });
+    }
 
     // Cek password
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -53,7 +50,12 @@ const loginUser = async (req, res) => {
 
     // Buat token JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email, role: user.role },
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
       process.env.JWT_SECRET,
       { algorithm: "HS512", expiresIn: "1h" }
     );

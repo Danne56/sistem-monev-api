@@ -17,3 +17,4 @@ router.put("/desa-wisata/:kd_desa", authenticateToken, checkRole("pengelola"), u
 router.delete("/desa-wisata/:kd_desa", authenticateToken, checkRole("pengelola"), deleteDesaWisata);
 
 module.exports = router;
+
