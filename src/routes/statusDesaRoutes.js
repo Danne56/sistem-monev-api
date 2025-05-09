@@ -23,7 +23,7 @@ router.post(
 );
 
 // Read All
-router.get("/status-desa", authenticateToken, getAllStatusDesa);
+router.get("/status-desa", getAllStatusDesa);
 
 // Read by kd_status
 router.get(

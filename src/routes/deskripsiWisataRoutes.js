@@ -38,10 +38,10 @@ const handleUploadErrors = (err, req, res, next) => {
 };
 
 // GET all deskripsi wisata
-router.get('/deskripsi-wisata', authenticateToken, getAllDeskripsiWisata);
+router.get('/deskripsi-wisata', getAllDeskripsiWisata);
 
 // GET deskripsi wisata by kd_desa
-router.get('/deskripsi-wisata/:kd_desa', authenticateToken, getDeskripsiWisataByKdDesa);
+router.get('/deskripsi-wisata/:kd_desa', getDeskripsiWisataByKdDesa);
 
 // POST create deskripsi wisata with multiple image uploads
 router.post(
