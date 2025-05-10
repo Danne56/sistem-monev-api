@@ -165,9 +165,9 @@ const addDeskripsiWisata = async (req, res) => {
     client = await pool.connect();
 
     if (!req.body || !req.body.data) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Data tidak ditemukan dalam request",
+      return res.status(400).json({ 
+        status: "fail", 
+        message: "Data tidak ditemukan dalam request"
       });
     }
 
@@ -262,10 +262,14 @@ const addDeskripsiWisata = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Error adding deskripsi wisata:", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal server error" });
+    if (err.code === '23505') { // PostgreSQL error code untuk duplicate key
+      return res.status(400).json({
+        status: "fail",
+        message: "Deskripsi wisata untuk desa ini sudah ada. Gunakan endpoint /update"
+      });
+    }
+    console.error("Error adding deskripsi wisata:", err.message);
+    return res.status(500).json({ status: "error", message: "Internal server error" });
   } finally {
     if (client) client.release();
   }
