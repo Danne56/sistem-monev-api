@@ -3,7 +3,8 @@ const { statusDesaSchema } = require("../handlers/schema");
 
 // Fungsi untuk menambahkan status desa
 const addStatusDesa = async (req, res) => {
-  const { kd_status, kd_desa, status, keterangan } = req.body;
+  const { kd_desa, status, keterangan } = req.body;
+  const kd_status = `STS${Date.now()}`;
 
   // Validasi input menggunakan Joi
   const { error } = statusDesaSchema.validate({

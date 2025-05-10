@@ -4,7 +4,6 @@ const { desaWisataSchema } = require("../handlers/schema");
 // Menambahkan desa wisata
 const addDesaWisata = async (req, res) => {
   const {
-    kd_desa,
     provinsi,
     kabupaten,
     nama_desa,
@@ -16,9 +15,10 @@ const addDesaWisata = async (req, res) => {
     kd_kategori_desa_wisata,
   } = req.body;
 
+  const kd_desa = `DESA${Date.now()}`;
+
   // Validasi input menggunakan Joi
   const { error } = desaWisataSchema.validate({
-    kd_desa,
     provinsi,
     kabupaten,
     nama_desa,
@@ -41,6 +41,18 @@ const addDesaWisata = async (req, res) => {
   try {
     await client.query("BEGIN");
 
+    // Cek apakah email terdaftar di tabel users
+    const checkUserQuery = "SELECT 1 FROM users WHERE email = $1";
+    const checkUserResult = await client.query(checkUserQuery, [email]);
+
+    if (checkUserResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        status: "fail",
+        message: "Email tidak terdaftar",
+      });
+    }
+
     // Cek apakah kode desa sudah ada
     const checkDesaQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
     const checkDesaResult = await client.query(checkDesaQuery, [kd_desa]);
@@ -54,8 +66,11 @@ const addDesaWisata = async (req, res) => {
     }
 
     // Cek apakah kategori desa wisata valid
-    const checkKategoriQuery = "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
-    const checkKategoriResult = await client.query(checkKategoriQuery, [kd_kategori_desa_wisata]);
+    const checkKategoriQuery =
+      "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
+    const checkKategoriResult = await client.query(checkKategoriQuery, [
+      kd_kategori_desa_wisata,
+    ]);
 
     if (checkKategoriResult.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -84,13 +99,18 @@ const addDesaWisata = async (req, res) => {
       kd_kategori_desa_wisata,
     ]);
 
-    // Tambahkan permintaan ke tabel permintaan
-    const kd_permintaan = `REQ${Date.now()}`; // Generate unique request ID
+    // Tambahkan entri ke tabel permintaan
+    const kd_permintaan = `REQ${Date.now()}`;
     const insertPermintaanQuery = `
       INSERT INTO permintaan (kd_permintaan, email, kd_desa, status_permintaan)
       VALUES ($1, $2, $3, $4)
     `;
-    await client.query(insertPermintaanQuery, [kd_permintaan, email, kd_desa, "diproses"]);
+    await client.query(insertPermintaanQuery, [
+      kd_permintaan,
+      email,
+      kd_desa,
+      "diproses",
+    ]);
 
     await client.query("COMMIT");
 
@@ -98,16 +118,13 @@ const addDesaWisata = async (req, res) => {
       status: "success",
       message: "Desa wisata berhasil ditambahkan dan sedang dalam proses tinjauan admin",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
-
     console.error("Error adding desa wisata:", err);
     return res.status(500).json({
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }

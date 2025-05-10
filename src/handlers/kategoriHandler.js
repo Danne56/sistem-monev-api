@@ -3,11 +3,11 @@ const { kategoriSchema } = require("./schema");
 const pool = require("../config/db");
 
 const addKategoriDesaWisata = async (req, res) => {
-  const { kd_kategori_desa_wisata, nama_kategori, nilai } = req.body;
+  const { nama_kategori, nilai } = req.body;
+  const kd_kategori_desa_wisata = `KTG${Date.now()}`;
 
   // Validasi input menggunakan Joi
   const { error } = kategoriSchema.validate({
-    kd_kategori_desa_wisata,
     nama_kategori,
     nilai,
   });
