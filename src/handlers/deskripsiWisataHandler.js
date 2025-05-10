@@ -155,8 +155,8 @@ const addDeskripsiWisata = async (req, res) => {
     client = await pool.connect();
 
     if (!req.body || !req.body.data) {
-      return res.status(400).json({ 
-        status: "fail", 
+      return res.status(400).json({
+        status: "fail",
         message: "Data tidak ditemukan dalam request"
       });
     }
@@ -165,9 +165,9 @@ const addDeskripsiWisata = async (req, res) => {
     try {
       data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data;
     } catch (err) {
-      return res.status(400).json({ 
-        status: "fail", 
-        message: "Format data tidak valid" 
+      return res.status(400).json({
+        status: "fail",
+        message: "Format data tidak valid"
       });
     }
 
@@ -192,9 +192,9 @@ const addDeskripsiWisata = async (req, res) => {
       suvenir,
     });
     if (error) {
-      return res.status(400).json({ 
-        status: "fail", 
-        message: error.details[0].message 
+      return res.status(400).json({
+        status: "fail",
+        message: error.details[0].message
       });
     }
 
@@ -229,15 +229,21 @@ const addDeskripsiWisata = async (req, res) => {
       JSON.stringify(suvenirWithImages),
     ]);
 
-    return res.status(201).json({ 
-      status: "success", 
+    return res.status(201).json({
+      status: "success",
       message: "Deskripsi wisata berhasil ditambahkan",
       data: {
         kd_desa: result.rows[0].kd_desa
       }
     });
   } catch (err) {
-    console.error("Error adding deskripsi wisata:", err);
+    if (err.code === '23505') { // PostgreSQL error code untuk duplicate key
+      return res.status(400).json({
+        status: "fail",
+        message: "Deskripsi wisata untuk desa ini sudah ada. Gunakan endpoint /update"
+      });
+    }
+    console.error("Error adding deskripsi wisata:", err.message);
     return res.status(500).json({ status: "error", message: "Internal server error" });
   } finally {
     if (client) client.release();
