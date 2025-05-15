@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const authRoutes = require("./src/routes/authRoutes");
 const kategoriRoutes = require("./src/routes/kategoriRoutes");
 const desaWisataRoutes = require("./src/routes/desaWisataRoutes");
@@ -11,6 +12,8 @@ const YAML = require("yamljs");
 const app = express();
 app.use(express.json());
 
+
+app.use(cors( { origin: '*' } )); // Mengizinkan semua origin untuk akses API
 // Middleware debug untuk menampilkan metode dan URL request
 app.use((req, res, next) => {
   console.log(req.method, req.url); // Menampilkan metode dan URL dari request

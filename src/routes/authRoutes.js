@@ -3,6 +3,8 @@ const { registerUser } = require("../handlers/userHandler");
 const { verifyAccount } = require("../handlers/verifyAccountHandler");
 const { loginUser } = require("../handlers/loginHandler");
 const { authenticateToken } = require("../middleware/authMiddleware");
+const { forgotPassword } = require("../handlers/forgotPasswordHandler");
+const { resetPassword } = require("../handlers/resetPasswordHandler");
 const { logoutUser } = require("../handlers/logoutHandler");
 const { checkTokenBlacklist } = require("../middleware/checkTokenBlacklist");
 const { checkRole } = require("../middleware/authMiddleware");
@@ -11,6 +13,8 @@ const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/password", forgotPassword);
+router.put("/password", resetPassword);
 router.post("/logout", authenticateToken, checkTokenBlacklist, logoutUser);
 router.put("/verify/:email", authenticateToken, checkRole("admin"), verifyAccount);
 

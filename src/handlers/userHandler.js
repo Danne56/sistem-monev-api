@@ -2,15 +2,13 @@ require("dotenv").config();
 const pool = require("../config/db");
 const { registerSchema } = require("./schema");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 
 const registerUser = async (req, res) => {
-  const { username, fullName, email, password, confirmPassword, role } =
+  const { fullName, email, password, confirmPassword, role } =
     req.body;
 
   // Validasi input menggunakan Joi
   const { error } = registerSchema.validate({
-    username,
     fullName,
     email,
     password,
@@ -40,13 +38,13 @@ const registerUser = async (req, res) => {
 
     // Cek username atau email sudah terdaftar
     const checkUserQuery = `
-      SELECT 1 FROM users WHERE username = $1 OR email = $2`;
-    const checkResult = await client.query(checkUserQuery, [username, email]);
+      SELECT 1 FROM users WHERE email = $1`;
+    const checkResult = await client.query(checkUserQuery, [email]);
 
     if (checkResult.rows.length > 0) {
       return res.status(409).json({
         status: "fail",
-        message: "Username atau email sudah digunakan",
+        message: "Email sudah digunakan",
       });
     }
 
@@ -56,15 +54,14 @@ const registerUser = async (req, res) => {
 
     // Masukkan ke tabel users dengan is_verified = false
     const insertQuery = `
-      INSERT INTO users (username, full_name, email, password, role, is_verified)
-      VALUES ($1, $2, $3, $4, $5, false)
+      INSERT INTO users (full_name, email, password, role, is_verified)
+      VALUES ($1, $2, $3, $4, false)
     `;
     await client.query(insertQuery, [
-      username,
       fullName,
       email,
       hashedPassword,
-      role || "user", // default role user jika tidak diberi
+      role || "pengelola", // default role user jika tidak diberi
     ]);
 
     await client.query("COMMIT");

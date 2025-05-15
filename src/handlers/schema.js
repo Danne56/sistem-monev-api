@@ -5,13 +5,6 @@ const Joi = require("joi");
    ============================== */
 
 const registerSchema = Joi.object({
-  username: Joi.string().alphanum().min(3).max(30).required().messages({
-    "string.alphanum": `"username" hanya boleh berisi huruf dan angka`,
-    "string.base": `"username" harus berupa sebuah string`,
-    "string.min": `"username" harus memiliki setidaknya 3 karakter`,
-    "string.max": `"username" harus memiliki maksimal 30 karakter`,
-    "any.required": `"username" wajib diisi`,
-  }),
   fullName: Joi.string().min(3).max(50).required().messages({
     "string.base": `"fullName" harus berupa sebuah string`,
     "string.min": `"fullName" harus memiliki setidaknya 3 karakter`,
@@ -55,11 +48,6 @@ const loginSchema = Joi.object({
    ============================== */
 
 const kategoriSchema = Joi.object({
-  kd_kategori_desa_wisata: Joi.string().trim().max(10).required().messages({
-    "string.base": `"Kode kategori harus berupa teks"`,
-    "string.max": `"Kode kategori maksimal 10 karakter"`,
-    "any.required": `"Kode kategori wajib diisi"`,
-  }),
   nama_kategori: Joi.string().trim().max(100).required().messages({
     "string.base": `"Nama kategori harus berupa teks"`,
     "string.max": `"Nama kategori maksimal 100 karakter"`,
@@ -78,11 +66,6 @@ const kategoriSchema = Joi.object({
    ============================== */
 
 const desaWisataSchema = Joi.object({
-  kd_desa: Joi.string().trim().max(10).required().messages({
-    "string.base": `"Kode desa" harus berupa teks`,
-    "string.max": `"Kode desa" maksimal 10 karakter`,
-    "any.required": `"Kode desa" wajib diisi`,
-  }),
   provinsi: Joi.string().trim().max(100).required().messages({
     "string.base": `"Provinsi" harus berupa teks`,
     "string.max": `"Provinsi" maksimal 100 karakter`,
@@ -134,11 +117,6 @@ const desaWisataSchema = Joi.object({
    ============================== */
 
 const statusDesaSchema = Joi.object({
-  kd_status: Joi.string().max(10).required().messages({
-    "string.base": `"Kode status" harus berupa teks`,
-    "string.max": `"Kode status" maksimal 10 karakter`,
-    "any.required": `"Kode status" wajib diisi`,
-  }),
   kd_desa: Joi.string().max(10).required().messages({
     "string.base": `"Kode desa" harus berupa teks`,
     "string.max": `"Kode desa" maksimal 10 karakter`,
@@ -225,6 +203,19 @@ const entitySchema = Joi.object({
     ).default([])
   });
 
+//forgot password schema
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+//reset password schema
+const resetPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+  resetCode: Joi.string().length(6).required(),
+  newPassword: Joi.string().min(6).required(),
+  confirmPassword: Joi.string().valid(Joi.ref("newPassword")).required(),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -232,4 +223,6 @@ module.exports = {
   desaWisataSchema,
   statusDesaSchema,
   deskripsiWisataSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 };
