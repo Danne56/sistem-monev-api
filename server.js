@@ -5,6 +5,7 @@ const kategoriRoutes = require("./src/routes/kategoriRoutes");
 const desaWisataRoutes = require("./src/routes/desaWisataRoutes");
 const deskripsiWisataRoutes = require("./src/routes/deskripsiWisataRoutes");
 const statusDesaRoutes = require("./src/routes/statusDesaRoutes");
+const skorDesaRoutes = require("./src/routes/skorDesaRoutes");
 require("dotenv").config();
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
@@ -33,7 +34,8 @@ app.use(
   kategoriRoutes,
   desaWisataRoutes,
   deskripsiWisataRoutes,
-  statusDesaRoutes
+  statusDesaRoutes,
+  skorDesaRoutes,
 );
 
 app.use((req, res, next) => {

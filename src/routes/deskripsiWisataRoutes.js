@@ -1,15 +1,14 @@
 const express = require('express');
+const { authenticateToken, checkRole } = require("../middleware/authMiddleware");
 const {
   addDeskripsiWisata,
   getAllDeskripsiWisata,
   getDeskripsiWisataByKdDesa,
   updateDeskripsiWisata,
   deleteDeskripsiWisata,
-  upload, // Import the upload middleware from handler
-  handleUploadErrors // Import the error handler from handler
+  upload,
+  handleUploadErrors
 } = require("../handlers/deskripsiWisataHandler");
-const { authenticateToken, checkRole } = require("../middleware/authMiddleware");
-
 const router = express.Router();
 
 // Define the fields and their limits for file uploads
