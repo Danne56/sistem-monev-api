@@ -1,6 +1,5 @@
 const pool = require("../config/db");
 
-// Menambahkan skor desa wisata (POST)
 const addSkorDesaWisata = async (req, res) => {
     const {
         kd_desa,
@@ -12,7 +11,6 @@ const addSkorDesaWisata = async (req, res) => {
         produk_tempat_wisata,
     } = req.body;
 
-    // Validasi semua nilai adalah integer antara 1 - 100
     const scores = [
         partisipasi_masyarakat,
         keragaman_paket_wisata,
@@ -20,7 +18,7 @@ const addSkorDesaWisata = async (req, res) => {
         keramahan_difabel,
         fasilitas_tempat_wisata,
         produk_tempat_wisata,
-    ].map(score => Number(score)); // Convert values to numbers
+    ].map(score => Number(score));
 
     if (scores.some(score => isNaN(score) || score < 1 || score > 100)) {
         return res.status(400).json({
@@ -31,7 +29,6 @@ const addSkorDesaWisata = async (req, res) => {
     console.log("Request Body:", req.body);
     console.log("Tipe data partisipasi_masyarakat:", typeof req.body.partisipasi_masyarakat);
     try {
-        // Cek apakah desa ada di tabel desa_wisata
         const checkDesaQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
         const checkDesaResult = await pool.query(checkDesaQuery, [kd_desa]);
 
@@ -42,7 +39,6 @@ const addSkorDesaWisata = async (req, res) => {
             });
         }
 
-        // Cek apakah skor sudah ada
         const checkSkorQuery = "SELECT 1 FROM skor_desa_wisata WHERE kd_desa = $1";
         const checkSkorResult = await pool.query(checkSkorQuery, [kd_desa]);
 
@@ -53,11 +49,9 @@ const addSkorDesaWisata = async (req, res) => {
             });
         }
 
-        // Hitung total dan rata-rata
         const total_skor = scores.reduce((sum, val) => sum + val, 0);
         const rata_rata = Math.round(total_skor / 6);
 
-        // Simpan data ke database
         const query = `
       INSERT INTO skor_desa_wisata (
         kd_desa,
@@ -100,7 +94,6 @@ const addSkorDesaWisata = async (req, res) => {
     }
 };
 
-// Memperbarui skor desa wisata (PUT)
 const updateSkorDesaWisata = async (req, res) => {
     const { kd_desa } = req.params;
     const {
@@ -113,8 +106,8 @@ const updateSkorDesaWisata = async (req, res) => {
     } = req.body;
 
     console.log("PUT Request Body:", req.body);
-    
-    // Convert string values to numbers and validate
+
+
     const scores = [
         partisipasi_masyarakat,
         keragaman_paket_wisata,
@@ -134,7 +127,6 @@ const updateSkorDesaWisata = async (req, res) => {
     }
 
     try {
-        // Cek apakah skor ada
         const checkSkorQuery = "SELECT 1 FROM skor_desa_wisata WHERE kd_desa = $1";
         const checkSkorResult = await pool.query(checkSkorQuery, [kd_desa]);
 
@@ -144,12 +136,9 @@ const updateSkorDesaWisata = async (req, res) => {
                 message: "Data skor tidak ditemukan.",
             });
         }
-
-        // Hitung total dan rata-rata
         const total_skor = scores.reduce((sum, val) => sum + val, 0);
         const rata_rata = Math.round(total_skor / 6);
 
-        // Update data di database
         const query = `
       UPDATE skor_desa_wisata SET
         partisipasi_masyarakat = $1,
