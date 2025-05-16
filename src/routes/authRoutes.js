@@ -8,6 +8,7 @@ const { resetPassword } = require("../handlers/resetPasswordHandler");
 const { logoutUser } = require("../handlers/logoutHandler");
 const { checkTokenBlacklist } = require("../middleware/checkTokenBlacklist");
 const { checkRole } = require("../middleware/authMiddleware");
+const { verifyToken } = require("../middleware/authMiddleware");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.post("/password", forgotPassword);
 router.put("/password", resetPassword);
 router.post("/logout", authenticateToken, checkTokenBlacklist, logoutUser);
 router.put("/verify/:email", authenticateToken, checkRole("admin"), verifyAccount);
+router.get("/me", authenticateToken, verifyToken);
 
 // Hanya di development
 if (process.env.NODE_ENV === "development") {

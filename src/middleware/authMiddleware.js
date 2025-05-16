@@ -46,4 +46,11 @@ const checkRole = (requiredRole) => {
   };
 };
 
-module.exports = { authenticateToken, checkRole };
+const verifyToken = async (req, res) => {
+  res.status(200).json({
+    status: "success",
+    data: req.user // Data user dari JWT
+  });
+};
+
+module.exports = { authenticateToken, checkRole, verifyToken };

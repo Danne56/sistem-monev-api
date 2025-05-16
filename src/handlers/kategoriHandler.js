@@ -1,13 +1,14 @@
 require("dotenv").config();
 const { kategoriSchema } = require("./schema");
 const pool = require("../config/db");
+const { nanoid } = require("nanoid");
 
 const addKategoriDesaWisata = async (req, res) => {
-  const { kd_kategori_desa_wisata, nama_kategori, nilai } = req.body;
+  const { nama_kategori, nilai } = req.body;
+  const kd_kategori_desa_wisata = `KTG-${nanoid(10)}`;
 
   // Validasi input menggunakan Joi
   const { error } = kategoriSchema.validate({
-    kd_kategori_desa_wisata,
     nama_kategori,
     nilai,
   });
@@ -24,8 +25,11 @@ const addKategoriDesaWisata = async (req, res) => {
     await client.query("BEGIN");
 
     // Cek apakah kode kategori sudah ada
-    const checkQuery = "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
-    const checkResult = await client.query(checkQuery, [kd_kategori_desa_wisata]);
+    const checkQuery =
+      "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
+    const checkResult = await client.query(checkQuery, [
+      kd_kategori_desa_wisata,
+    ]);
 
     if (checkResult.rows.length > 0) {
       await client.query("ROLLBACK");
@@ -40,15 +44,21 @@ const addKategoriDesaWisata = async (req, res) => {
       INSERT INTO kategori_desa_wisata (kd_kategori_desa_wisata, nama_kategori, nilai)
       VALUES ($1, $2, $3)
     `;
-    await client.query(insertQuery, [kd_kategori_desa_wisata, nama_kategori, nilai]);
+    await client.query(insertQuery, [
+      kd_kategori_desa_wisata,
+      nama_kategori,
+      nilai,
+    ]);
 
     await client.query("COMMIT");
 
     return res.status(201).json({
       status: "success",
       message: "Kategori desa wisata berhasil ditambahkan",
+      data: {
+        kd_kategori_desa_wisata,
+      },
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -57,7 +67,6 @@ const addKategoriDesaWisata = async (req, res) => {
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }

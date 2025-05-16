@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./src/routes/authRoutes");
@@ -9,23 +10,51 @@ const skorDesaRoutes = require("./src/routes/skorDesaRoutes");
 require("dotenv").config();
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
+const helmet = require("helmet");
 
 const app = express();
 app.use(express.json());
 
+// Security middleware
+app.disable("x-powered-by");
+app.use(helmet());
 
 app.use(cors( { origin: '*' } )); // Mengizinkan semua origin untuk akses API
-// Middleware debug untuk menampilkan metode dan URL request
-app.use((req, res, next) => {
-  console.log(req.method, req.url); // Menampilkan metode dan URL dari request
-  next(); // Melanjutkan ke middleware selanjutnya
-});
+
+// Debug Logging
+if (process.env.NODE_ENV === "development") {
+  app.use((req, res, next) => {
+    console.log("\n[DEV]", req.method, req.url, "| Body:", req.body);
+    next();
+  });
+} else {
+  app.use((req, res, next) => {
+    console.log(req.method, req.url); // Menampilkan metode dan URL dari request
+    next();
+  });
+}
 
 // Load file OpenAPI YAML
 const swaggerDocument = YAML.load("./openapi.yaml");
 
 // Serve Swagger UI
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+if (process.env.NODE_ENV === "development") {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
+
+// Middleware untuk memastikan route development tidak dipakai di production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === "production") {
+    // Blokir akses ke route mock data
+    if (req.path.startsWith("/authentication/mock")) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Route tidak ditemukan",
+      });
+    }
+  }
+  next();
+});
 
 // Routes
 app.use("/authentication", authRoutes);
@@ -35,7 +64,7 @@ app.use(
   desaWisataRoutes,
   deskripsiWisataRoutes,
   statusDesaRoutes,
-  skorDesaRoutes,
+  skorDesaRoutes
 );
 
 app.use((req, res, next) => {
@@ -47,12 +76,16 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
+  const errorResponse = {
     status: "error",
-    message: "Internal server error",
-  });
-  next();
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : err.message,
+    ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
+  };
+  console.error(errorResponse);
+  res.status(500).json(errorResponse);
 });
 
 const PORT = process.env.PORT || 5000;

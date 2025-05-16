@@ -22,10 +22,6 @@ const registerSchema = Joi.object({
     "string.min": `"password" harus memiliki setidaknya 6 karakter`,
     "any.required": `"password" wajib diisi`,
   }),
-  confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
-    "any.only": `"confirmPassword" harus sama dengan "password"`,
-    "any.required": `"confirmPassword" wajib diisi`,
-  }),
   role: Joi.string().valid("admin", "pengelola", "pengguna", "dinas").required().messages({
     "any.only": `"role" hanya boleh diisi dengan "admin", "pengelola", "pengguna", atau "dinas"`,
     "any.required": `"role" wajib diisi`,
@@ -104,12 +100,7 @@ const desaWisataSchema = Joi.object({
     "string.email": `"Email" tidak valid`,
     "string.max": `"Email" maksimal 100 karakter`,
     "any.required": `"Email" wajib diisi`,
-  }),
-  kd_kategori_desa_wisata: Joi.string().trim().max(10).required().messages({
-    "string.base": `"Kode kategori desa wisata" harus berupa teks`,
-    "string.max": `"Kode kategori desa wisata" maksimal 10 karakter`,
-    "any.required": `"Kode kategori desa wisata" wajib diisi`,
-  }),
+  })
 });
 
 /* ==============================

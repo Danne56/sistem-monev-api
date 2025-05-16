@@ -2,17 +2,16 @@ require("dotenv").config();
 const pool = require("../config/db");
 const { registerSchema } = require("./schema");
 const bcrypt = require("bcrypt");
+const { nanoid } = require("nanoid");
 
 const registerUser = async (req, res) => {
-  const { fullName, email, password, confirmPassword, role } =
-    req.body;
+  const { fullName, email, password, role } = req.body;
 
   // Validasi input menggunakan Joi
   const { error } = registerSchema.validate({
     fullName,
     email,
     password,
-    confirmPassword,
     role,
   });
 
@@ -23,20 +22,12 @@ const registerUser = async (req, res) => {
     });
   }
 
-  // Cek apakah password cocok
-  if (password !== confirmPassword) {
-    return res.status(400).json({
-      status: "fail",
-      message: "Password tidak cocok",
-    });
-  }
-
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
-    // Cek username atau email sudah terdaftar
+    // Cek apakah email sudah terdaftar
     const checkUserQuery = `
       SELECT 1 FROM users WHERE email = $1`;
     const checkResult = await client.query(checkUserQuery, [email]);
@@ -52,16 +43,20 @@ const registerUser = async (req, res) => {
     const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Generate ID unik menggunakan nanoid (misalnya panjang 10 karakter)
+    const userId = `user-${nanoid(10)}`;
+
     // Masukkan ke tabel users dengan is_verified = false
     const insertQuery = `
-      INSERT INTO users (full_name, email, password, role, is_verified)
-      VALUES ($1, $2, $3, $4, false)
+      INSERT INTO users (id, full_name, email, password, role, is_verified)
+      VALUES ($1, $2, $3, $4, $5, false)
     `;
     await client.query(insertQuery, [
+      userId,
       fullName,
       email,
       hashedPassword,
-      role || "pengelola", // default role user jika tidak diberi
+      role || "pengelola", // role default jika tidak diberikan
     ]);
 
     await client.query("COMMIT");
@@ -69,6 +64,9 @@ const registerUser = async (req, res) => {
     return res.status(201).json({
       status: "success",
       message: "Akun berhasil dibuat. Menunggu verifikasi dari admin.",
+      data: {
+        userId,
+      },
     });
   } catch (err) {
     await client.query("ROLLBACK");

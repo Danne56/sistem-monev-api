@@ -1,9 +1,11 @@
+const { nanoid } = require("nanoid");
 const pool = require("../config/db");
 const { statusDesaSchema } = require("../handlers/schema");
 
 // Fungsi untuk menambahkan status desa
 const addStatusDesa = async (req, res) => {
-  const { kd_status, kd_desa, status, keterangan } = req.body;
+  const { kd_desa, status, keterangan } = req.body;
+  const kd_status = `STAT-${nanoid(10)}`;
 
   // Validasi input menggunakan Joi
   const { error } = statusDesaSchema.validate({
@@ -48,6 +50,9 @@ const addStatusDesa = async (req, res) => {
     return res.status(201).json({
       status: "success",
       message: "Status desa berhasil ditambahkan",
+      data: {
+        kd_status,
+      },
     });
   } catch (err) {
     await client.query("ROLLBACK");

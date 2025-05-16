@@ -1,10 +1,10 @@
+const { nanoid } = require("nanoid");
 const pool = require("../config/db");
 const { desaWisataSchema } = require("../handlers/schema");
 
 // Menambahkan desa wisata
 const addDesaWisata = async (req, res) => {
   const {
-    kd_desa,
     provinsi,
     kabupaten,
     nama_desa,
@@ -16,9 +16,10 @@ const addDesaWisata = async (req, res) => {
     kd_kategori_desa_wisata,
   } = req.body;
 
+  const kd_desa = `DESA-${nanoid(10)}`;
+
   // Validasi input menggunakan Joi
   const { error } = desaWisataSchema.validate({
-    kd_desa,
     provinsi,
     kabupaten,
     nama_desa,
@@ -27,7 +28,6 @@ const addDesaWisata = async (req, res) => {
     pengelola,
     nomor_telepon,
     email,
-    kd_kategori_desa_wisata,
   });
 
   if (error) {
@@ -40,6 +40,18 @@ const addDesaWisata = async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+
+    // Cek apakah email terdaftar di tabel users
+    const checkUserQuery = "SELECT 1 FROM users WHERE email = $1";
+    const checkUserResult = await client.query(checkUserQuery, [email]);
+
+    if (checkUserResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        status: "fail",
+        message: "Email tidak terdaftar",
+      });
+    }
 
     // Cek apakah kode desa sudah ada
     const checkDesaQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
@@ -54,16 +66,19 @@ const addDesaWisata = async (req, res) => {
     }
 
     // Cek apakah kategori desa wisata valid
-    const checkKategoriQuery = "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
-    const checkKategoriResult = await client.query(checkKategoriQuery, [kd_kategori_desa_wisata]);
+    // const checkKategoriQuery =
+    //   "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
+    // const checkKategoriResult = await client.query(checkKategoriQuery, [
+    //   kd_kategori_desa_wisata,
+    // ]);
 
-    if (checkKategoriResult.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({
-        status: "fail",
-        message: "Kategori desa wisata tidak valid",
-      });
-    }
+    // if (checkKategoriResult.rows.length === 0) {
+    //   await client.query("ROLLBACK");
+    //   return res.status(400).json({
+    //     status: "fail",
+    //     message: "Kategori desa wisata tidak valid",
+    //   });
+    // }
 
     // Tambahkan data desa wisata ke tabel desa_wisata
     const insertDesaQuery = `
@@ -84,30 +99,36 @@ const addDesaWisata = async (req, res) => {
       kd_kategori_desa_wisata,
     ]);
 
-    // Tambahkan permintaan ke tabel permintaan
-    const kd_permintaan = `REQ${Date.now()}`; // Generate unique request ID
+    // Tambahkan entri ke tabel permintaan
+    const kd_permintaan = `REQ-${nanoid(10)}`;
     const insertPermintaanQuery = `
       INSERT INTO permintaan (kd_permintaan, email, kd_desa, status_permintaan)
       VALUES ($1, $2, $3, $4)
     `;
-    await client.query(insertPermintaanQuery, [kd_permintaan, email, kd_desa, "diproses"]);
+    await client.query(insertPermintaanQuery, [
+      kd_permintaan,
+      email,
+      kd_desa,
+      "diterima",
+    ]);
 
     await client.query("COMMIT");
 
     return res.status(201).json({
       status: "success",
-      message: "Desa wisata berhasil ditambahkan dan sedang dalam proses tinjauan admin",
+      message:
+        "Desa wisata berhasil ditambahkan dan sedang dalam proses tinjauan admin",
+      data: {
+        kd_desa,
+      },
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
-
     console.error("Error adding desa wisata:", err);
     return res.status(500).json({
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }
@@ -128,7 +149,6 @@ const getAllDesaWisata = async (req, res) => {
       status: "success",
       data: result.rows,
     });
-
   } catch (err) {
     console.error("Error fetching desa wisata:", err);
     return res.status(500).json({
@@ -155,7 +175,6 @@ const getDesaWisataById = async (req, res) => {
       status: "success",
       data: result.rows[0],
     });
-
   } catch (err) {
     console.error("Error fetching deskripsi wisata:", err);
     return res.status(500).json({
@@ -169,7 +188,8 @@ const getDesaWisataById = async (req, res) => {
 const getDesaWisataByKategori = async (req, res) => {
   const { kd_kategori_desa_wisata } = req.params;
   try {
-    const query = "SELECT * FROM desa_wisata WHERE kd_kategori_desa_wisata = $1";
+    const query =
+      "SELECT * FROM desa_wisata WHERE kd_kategori_desa_wisata = $1";
     const result = await pool.query(query, [kd_kategori_desa_wisata]);
 
     if (result.rows.length === 0) {
@@ -182,7 +202,6 @@ const getDesaWisataByKategori = async (req, res) => {
       status: "success",
       data: result.rows[0],
     });
-
   } catch (err) {
     console.error("Error fetching desa wisata by category:", err);
     return res.status(500).json({
@@ -190,7 +209,7 @@ const getDesaWisataByKategori = async (req, res) => {
       message: "Internal server error",
     });
   }
-}
+};
 
 // Update desa wisata
 const updateDesaWisata = async (req, res) => {
@@ -229,6 +248,7 @@ const updateDesaWisata = async (req, res) => {
   }
 
   const client = await pool.connect();
+  // Hapus desa wisata
   try {
     await client.query("BEGIN");
 
@@ -270,7 +290,6 @@ const updateDesaWisata = async (req, res) => {
       status: "success",
       message: "Desa wisata berhasil diperbarui",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -279,7 +298,6 @@ const updateDesaWisata = async (req, res) => {
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }
@@ -319,7 +337,6 @@ const deleteDesaWisata = async (req, res) => {
       status: "success",
       message: "Desa wisata berhasil dihapus",
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
 
@@ -328,10 +345,16 @@ const deleteDesaWisata = async (req, res) => {
       status: "error",
       message: "Internal server error",
     });
-
   } finally {
     client.release();
   }
 };
 
-module.exports = { addDesaWisata, getAllDesaWisata, getDesaWisataById, getDesaWisataByKategori, updateDesaWisata, deleteDesaWisata };
+module.exports = {
+  addDesaWisata,
+  getAllDesaWisata,
+  getDesaWisataById,
+  getDesaWisataByKategori,
+  updateDesaWisata,
+  deleteDesaWisata,
+};

@@ -4,13 +4,13 @@ const { authenticateToken, checkRole } = require("../middleware/authMiddleware")
 
 const router = express.Router();
 
-router.post("/desa-wisata", authenticateToken, checkRole("pengelola"), addDesaWisata);
+router.post("/desa-wisata", addDesaWisata);
 
-router.get("/desa-wisata", authenticateToken, getAllDesaWisata);
+router.get("/desa-wisata", getAllDesaWisata);
 
-router.get("/desa-wisata/:kd_desa", authenticateToken, getDesaWisataById);
+router.get("/desa-wisata/:kd_desa", getDesaWisataById);
 
-router.get("/desa-wisata/kategori/:kd_kategori_desa_wisata", authenticateToken, getDesaWisataByKategori);
+router.get("/desa-wisata/kategori/:kd_kategori_desa_wisata", getDesaWisataByKategori);
 
 router.put("/desa-wisata/:kd_desa", authenticateToken, checkRole("pengelola"), updateDesaWisata);
 
