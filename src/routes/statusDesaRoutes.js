@@ -5,7 +5,6 @@ const {
   getStatusDesaByKdStatus,
   updateStatusDesa,
   deleteStatusDesa,
-  getStatusDesaByStatus,
 } = require("../handlers/statusDesaHandler");
 const {
   authenticateToken,
