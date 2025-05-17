@@ -65,7 +65,7 @@ const loginUser = async (req, res) => {
         role: user.role,
       },
       secret,
-      { expiresIn: "1d" }
+      { expiresIn: "30d" }
     );
 
     return res.status(200).json({

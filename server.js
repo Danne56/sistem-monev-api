@@ -20,6 +20,11 @@ app.use(express.json());
 app.disable("x-powered-by");
 app.use(helmet());
 
+app.use(cors( { origin: '*' } )); 
+app.use((req, res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
 app.use(cors({ origin: "*" })); // Mengizinkan semua origin untuk akses API
 
 // Debug Logging
@@ -73,7 +78,7 @@ app.use((req, res, next) => {
   res.status(404).json({
     status: "fail",
     message: "Route not found",
-  });
+  });a
   next();
 });
 
