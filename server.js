@@ -6,6 +6,7 @@ const kategoriRoutes = require("./src/routes/kategoriRoutes");
 const desaWisataRoutes = require("./src/routes/desaWisataRoutes");
 const deskripsiWisataRoutes = require("./src/routes/deskripsiWisataRoutes");
 const statusDesaRoutes = require("./src/routes/statusDesaRoutes");
+const permintaanRoutes = require("./src/routes/permintaanRoutes");
 const skorDesaRoutes = require("./src/routes/skorDesaRoutes");
 require("dotenv").config();
 const swaggerUi = require("swagger-ui-express");
@@ -19,7 +20,7 @@ app.use(express.json());
 app.disable("x-powered-by");
 app.use(helmet());
 
-app.use(cors( { origin: '*' } )); // Mengizinkan semua origin untuk akses API
+app.use(cors({ origin: "*" })); // Mengizinkan semua origin untuk akses API
 
 // Debug Logging
 if (process.env.NODE_ENV === "development") {
@@ -64,6 +65,7 @@ app.use(
   desaWisataRoutes,
   deskripsiWisataRoutes,
   statusDesaRoutes,
+  permintaanRoutes,
   skorDesaRoutes
 );
 

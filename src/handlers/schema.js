@@ -22,10 +22,13 @@ const registerSchema = Joi.object({
     "string.min": `"password" harus memiliki setidaknya 6 karakter`,
     "any.required": `"password" wajib diisi`,
   }),
-  role: Joi.string().valid("admin", "pengelola", "pengguna", "dinas").required().messages({
-    "any.only": `"role" hanya boleh diisi dengan "admin", "pengelola", "pengguna", atau "dinas"`,
-    "any.required": `"role" wajib diisi`,
-  }),
+  role: Joi.string()
+    .valid("admin", "pengelola", "pengguna", "dinas")
+    .required()
+    .messages({
+      "any.only": `"role" hanya boleh diisi dengan "admin", "pengelola", "pengguna", atau "dinas"`,
+      "any.required": `"role" wajib diisi`,
+    }),
 });
 
 const loginSchema = Joi.object({
@@ -100,7 +103,7 @@ const desaWisataSchema = Joi.object({
     "string.email": `"Email" tidak valid`,
     "string.max": `"Email" maksimal 100 karakter`,
     "any.required": `"Email" wajib diisi`,
-  })
+  }),
 });
 
 /* ==============================
@@ -148,51 +151,69 @@ const itemSchema = Joi.object({
 // Schema untuk validasi entitas (atraksi, penginapan, dll.)
 const entitySchema = Joi.object({
   nama: Joi.string().required().messages({
-    'string.empty': 'Nama harus diisi',
-    'any.required': 'Nama wajib diisi'
+    "string.empty": "Nama harus diisi",
+    "any.required": "Nama wajib diisi",
   }),
   deskripsi: Joi.string().required().messages({
-    'string.empty': 'Deskripsi harus diisi',
-    'any.required': 'Deskripsi wajib diisi'
+    "string.empty": "Deskripsi harus diisi",
+    "any.required": "Deskripsi wajib diisi",
   }),
-  gambar: Joi.string().allow(null, '').optional().messages({
-    'string.base': 'Gambar harus berupa string'
+  gambar: Joi.string().allow(null, "").optional().messages({
+    "string.base": "Gambar harus berupa string",
   }),
   harga: Joi.number().allow(null).optional().messages({
-    'number.base': 'Harga harus berupa angka'
+    "number.base": "Harga harus berupa angka",
   }),
   created_at: Joi.string().optional(),
-  updated_at: Joi.string().optional()
+  updated_at: Joi.string().optional(),
 });
 
 /* ==============================
    Deskripsi Wisata Schema
    ============================== */
 
-   const deskripsiWisataSchema = Joi.object({
-    penjelasan_umum: Joi.string().required().messages({
-      'string.empty': 'Penjelasan umum tidak boleh kosong',
-      'any.required': 'Penjelasan umum harus diisi'
-    }),
-    fasilitas: Joi.string().allow('', null),
-    dokumentasi_desa: Joi.string().allow('', null),
-    atraksi: Joi.array().items(entitySchema).default([]),
-    penginapan: Joi.array().items(entitySchema).default([]),
-    paket_wisata: Joi.array().items(
+const deskripsiWisataSchema = Joi.object({
+  penjelasan_umum: Joi.string().required().messages({
+    "string.empty": "Penjelasan umum tidak boleh kosong",
+    "any.required": "Penjelasan umum harus diisi",
+  }),
+  fasilitas: Joi.string().allow("", null),
+  dokumentasi_desa: Joi.string().allow("", null),
+  atraksi: Joi.array().items(entitySchema).default([]),
+  penginapan: Joi.array().items(entitySchema).default([]),
+  paket_wisata: Joi.array()
+    .items(
       entitySchema.keys({
         harga: Joi.number().allow(null).required().messages({
-          'number.base': 'Harga paket wisata harus berupa angka'
-        })
+          "number.base": "Harga paket wisata harus berupa angka",
+        }),
       })
-    ).default([]),
-    suvenir: Joi.array().items(
+    )
+    .default([]),
+  suvenir: Joi.array()
+    .items(
       entitySchema.keys({
         harga: Joi.number().allow(null).required().messages({
-          'number.base': 'Harga suvenir harus berupa angka'
-        })
+          "number.base": "Harga suvenir harus berupa angka",
+        }),
       })
-    ).default([])
-  });
+    )
+    .default([]),
+});
+
+// Untuk POST /permintaan
+const createPermintaanSchema = Joi.object({
+  email: Joi.string().email().required(),
+  kd_desa: Joi.string().required(),
+});
+
+// Untuk PUT /permintaan/:kd_permintaan
+const updatePermintaanSchema = Joi.object({
+  status_permintaan: Joi.string()
+    .valid("diterima", "diproses", "selesai", "ditolak")
+    .required(),
+});
+
 
 //forgot password schema
 const forgotPasswordSchema = Joi.object({
@@ -214,6 +235,8 @@ module.exports = {
   desaWisataSchema,
   statusDesaSchema,
   deskripsiWisataSchema,
+  createPermintaanSchema,
+  updatePermintaanSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 };
