@@ -9,6 +9,7 @@ const {
   upload,
   handleUploadErrors
 } = require("../handlers/deskripsiWisataHandler");
+const { checkOwnership } = require("../middleware/checkOwnership");
 const router = express.Router();
 
 // Define the fields and their limits for file uploads
@@ -37,20 +38,22 @@ router.post(
 
 // PUT update deskripsi wisata with multiple image uploads
 router.put(
-  '/deskripsi-wisata/:kd_desa',
+  "/deskripsi-wisata/:kd_desa",
   authenticateToken,
   checkRole("pengelola"),
   handleUploadErrors, // Use error handler from handler
   upload.fields(imageFields), // Use upload from handler
-  updateDeskripsiWisata
+  updateDeskripsiWisata,
+  checkOwnership
 );
 
 // DELETE deskripsi wisata
 router.delete(
-  '/deskripsi-wisata/:kd_desa', 
-  authenticateToken, 
-  checkRole("pengelola"), 
-  deleteDeskripsiWisata
+  "/deskripsi-wisata/:kd_desa",
+  authenticateToken,
+  checkRole("pengelola"),
+  deleteDeskripsiWisata,
+  checkOwnership
 );
 
 module.exports = router;

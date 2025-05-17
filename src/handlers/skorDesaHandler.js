@@ -209,7 +209,61 @@ const updateSkorDesaWisata = async (req, res) => {
     }
 };
 
+const getAllSkorDesaWisata = async (req, res) => {
+  try {
+    const query = `
+          SELECT s.*, d.nama_desa
+          FROM skor_desa_wisata s
+          JOIN desa_wisata d ON s.kd_desa = d.kd_desa
+          ORDER BY s.kd_desa ASC`;
+
+    const result = await pool.query(query);
+
+    return res.status(200).json({
+      status: "success",
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching skor desa:", err);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Internal server error" });
+  }
+};
+
+const getSkorDesaWisataByID = async (req, res) => {
+  const { kd_desa } = req.params;
+
+  try {
+    const query = `
+          SELECT * FROM skor_desa_wisata
+          WHERE kd_desa = $1`;
+
+    const result = await pool.query(query, [kd_desa]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Skor desa tidak ditemukan",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error fetching skor desa:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
-    addSkorDesaWisata,
-    updateSkorDesaWisata,
+  addSkorDesaWisata,
+  updateSkorDesaWisata,
+  getAllSkorDesaWisata,
+  getSkorDesaWisataByID,
 };

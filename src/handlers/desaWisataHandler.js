@@ -138,9 +138,10 @@ const addDesaWisata = async (req, res) => {
 const getAllDesaWisata = async (req, res) => {
   try {
     const query = `
-      SELECT dw.*, p.kd_permintaan, p.status_permintaan
+      SELECT dw.*, p.kd_permintaan, p.status_permintaan, u.is_verified
       FROM desa_wisata dw
       LEFT JOIN permintaan p ON dw.kd_desa = p.kd_desa
+      LEFT JOIN users u ON dw.email = u.email
       ORDER BY dw.kd_desa ASC
     `;
     const result = await pool.query(query);
@@ -350,6 +351,40 @@ const deleteDesaWisata = async (req, res) => {
   }
 };
 
+const getDesaByUserEmail = async (req, res) => {
+  const { email } = req.params;
+
+  if (!email) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Query parameter 'email' tidak ditemukan",
+    });
+  }
+
+  try {
+    const query = "SELECT * FROM desa_wisata WHERE email = $1";
+    const result = await pool.query(query, [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Pengguna belum memiliki desa wisata.",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching desa_wisata by email:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   addDesaWisata,
   getAllDesaWisata,
@@ -357,4 +392,5 @@ module.exports = {
   getDesaWisataByKategori,
   updateDesaWisata,
   deleteDesaWisata,
+  getDesaByUserEmail,
 };

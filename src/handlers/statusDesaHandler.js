@@ -1,6 +1,6 @@
 const { nanoid } = require("nanoid");
 const pool = require("../config/db");
-const { statusDesaSchema } = require("../handlers/schema");
+const { updateStatusDesaSchema, createStatusDesaSchema } = require("../handlers/schema");
 
 // Fungsi untuk menambahkan status desa
 const addStatusDesa = async (req, res) => {
@@ -8,8 +8,7 @@ const addStatusDesa = async (req, res) => {
   const kd_status = `STAT-${nanoid(10)}`;
 
   // Validasi input menggunakan Joi
-  const { error } = statusDesaSchema.validate({
-    kd_status,
+  const { error } = createStatusDesaSchema.validate({
     kd_desa,
     status,
     keterangan,
@@ -70,7 +69,12 @@ const addStatusDesa = async (req, res) => {
 // Fungsi untuk mendapatkan semua status desa
 const getAllStatusDesa = async (req, res) => {
   try {
-    const query = "SELECT * FROM status_desa ORDER BY tanggal_update DESC";
+    const query = `
+    SELECT s.*, dw.nama_desa AS nama_desa_wisata, dw.provinsi, dw.kabupaten
+    FROM status_desa s
+    LEFT JOIN desa_wisata dw ON s.kd_desa = dw.kd_desa
+    ORDER BY s.tanggal_update DESC
+    `;
     const result = await pool.query(query);
 
     return res.status(200).json({
@@ -120,7 +124,7 @@ const updateStatusDesa = async (req, res) => {
   const { status, keterangan } = req.body;
 
   // Validasi input menggunakan Joi
-  const { error } = statusDesaSchema.validate({
+  const { error } = updateStatusDesaSchema.validate({
     status,
     keterangan,
   });

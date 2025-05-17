@@ -110,12 +110,28 @@ const desaWisataSchema = Joi.object({
    Status Desa Schema
    ============================== */
 
-const statusDesaSchema = Joi.object({
-  kd_desa: Joi.string().max(10).required().messages({
+const createStatusDesaSchema = Joi.object({
+  kd_desa: Joi.string().max(15).required().messages({
     "string.base": `"Kode desa" harus berupa teks`,
     "string.max": `"Kode desa" maksimal 10 karakter`,
     "any.required": `"Kode desa" wajib diisi`,
   }),
+  status: Joi.string()
+    .valid("aktif", "perbaikan", "tidak aktif", "kurang terawat")
+    .required()
+    .messages({
+      "string.empty": `"Status" tidak boleh kosong`,
+      "string.base": `"Status" harus berupa teks`,
+      "any.only": `"Status" hanya boleh diisi dengan "aktif", "perbaikan", "tidak aktif", atau "kurang terawat"`,
+      "any.required": `"Status" wajib diisi`,
+    }),
+  keterangan: Joi.string().max(255).allow(null, "").messages({
+    "string.base": `"Keterangan" harus berupa teks`,
+    "string.max": `"Keterangan" maksimal 255 karakter`,
+  }),
+});
+
+const updateStatusDesaSchema = Joi.object({
   status: Joi.string()
     .valid("aktif", "perbaikan", "tidak aktif", "kurang terawat")
     .required()
@@ -233,10 +249,11 @@ module.exports = {
   loginSchema,
   kategoriSchema,
   desaWisataSchema,
-  statusDesaSchema,
   deskripsiWisataSchema,
   createPermintaanSchema,
   updatePermintaanSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  createStatusDesaSchema,
+  updateStatusDesaSchema
 };
