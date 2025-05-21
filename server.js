@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./src/routes/authRoutes");
-const kategoriRoutes = require("./src/routes/kategoriRoutes");
 const desaWisataRoutes = require("./src/routes/desaWisataRoutes");
 const deskripsiWisataRoutes = require("./src/routes/deskripsiWisataRoutes");
 const statusDesaRoutes = require("./src/routes/statusDesaRoutes");
@@ -66,7 +65,6 @@ app.use((req, res, next) => {
 app.use("/authentication", authRoutes);
 app.use(
   "/api",
-  kategoriRoutes,
   desaWisataRoutes,
   deskripsiWisataRoutes,
   statusDesaRoutes,

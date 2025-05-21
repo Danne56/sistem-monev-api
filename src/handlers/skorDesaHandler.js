@@ -1,5 +1,17 @@
 const pool = require("../config/db");
 
+const getKategoriDesa = (rata_rata) => {
+    if (rata_rata > 90) {
+        return "Mandiri";
+    } else if (rata_rata >= 75 && rata_rata <= 90) {
+        return "Maju";
+    } else if (rata_rata >= 50 && rata_rata < 75) {
+        return "Berkembang";
+    } else {
+        return "Rintisan";
+    }
+};
+
 const addSkorDesaWisata = async (req, res) => {
     const {
         kd_desa,
@@ -51,6 +63,7 @@ const addSkorDesaWisata = async (req, res) => {
 
         const total_skor = scores.reduce((sum, val) => sum + val, 0);
         const rata_rata = Math.round(total_skor / 6);
+        const kategori_desa = getKategoriDesa(rata_rata);
 
         const query = `
       INSERT INTO skor_desa_wisata (
@@ -77,12 +90,20 @@ const addSkorDesaWisata = async (req, res) => {
         const data = result.rows[0];
         data.total_skor = total_skor;
         data.rata_rata = rata_rata;
+        data.kategori_desa = kategori_desa;
+
+        // Update the kategori_desa in desa_wisata table
+        await pool.query(
+    "UPDATE desa_wisata SET kategori_desa = $1 WHERE kd_desa = $2",
+    [kategori_desa, kd_desa]
+);
 
         return res.status(201).json({
             status: "success",
             data,
             total_skor,
             rata_rata,
+            kategori_desa,
         });
 
     } catch (err) {
@@ -106,7 +127,6 @@ const updateSkorDesaWisata = async (req, res) => {
     } = req.body;
 
     console.log("PUT Request Body:", req.body);
-
 
     const scores = [
         partisipasi_masyarakat,
@@ -138,6 +158,7 @@ const updateSkorDesaWisata = async (req, res) => {
         }
         const total_skor = scores.reduce((sum, val) => sum + val, 0);
         const rata_rata = Math.round(total_skor / 6);
+        const kategori_desa = getKategoriDesa(rata_rata);
 
         const query = `
       UPDATE skor_desa_wisata SET
@@ -163,12 +184,20 @@ const updateSkorDesaWisata = async (req, res) => {
         const data = result.rows[0];
         data.total_skor = total_skor;
         data.rata_rata = rata_rata;
+        data.kategori_desa = kategori_desa;
+
+        // Update the kategori_desa in desa_wisata table
+        await pool.query(
+            "UPDATE desa_wisata SET kategori_desa = $1 WHERE kd_desa = $2",
+            [kategori_desa, kd_desa]
+        );
 
         return res.status(200).json({
             status: "success",
             data,
             total_skor,
             rata_rata,
+            kategori_desa,
         });
 
     } catch (err) {
