@@ -5,6 +5,7 @@ const {
   addSkorDesaWisata,
   updateSkorDesaWisata,
   getAllSkorDesaWisata,
+  getSkorDesaWisataByID
 } = require("../handlers/skorDesaHandler");
 
 router.post("/skor", authenticateToken, checkRole("dinas"), addSkorDesaWisata);
@@ -15,6 +16,6 @@ router.put(
   updateSkorDesaWisata
 );
 router.get("/skor", getAllSkorDesaWisata);
-router.get("/skor/:kd_desa", getAllSkorDesaWisata);
+router.get("/skor/:kd_desa", getSkorDesaWisataByID);
 
 module.exports = router;

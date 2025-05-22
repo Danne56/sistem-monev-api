@@ -66,17 +66,17 @@ const addSkorDesaWisata = async (req, res) => {
         const kategori_desa = getKategoriDesa(rata_rata);
 
         const query = `
-      INSERT INTO skor_desa_wisata (
-        kd_desa,
-        partisipasi_masyarakat,
-        keragaman_paket_wisata,
-        akses_tempat_wisata,
-        keramahan_difabel,
-        fasilitas_tempat_wisata,
-        produk_tempat_wisata
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *
-    `;
+            INSERT INTO skor_desa_wisata (
+                kd_desa,
+                partisipasi_masyarakat,
+                keragaman_paket_wisata,
+                akses_tempat_wisata,
+                keramahan_difabel,
+                fasilitas_tempat_wisata,
+                produk_tempat_wisata
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+            `;
         const result = await pool.query(query, [
             kd_desa,
             scores[0], // Use converted number values
@@ -94,9 +94,9 @@ const addSkorDesaWisata = async (req, res) => {
 
         // Update the kategori_desa in desa_wisata table
         await pool.query(
-    "UPDATE desa_wisata SET kategori_desa = $1 WHERE kd_desa = $2",
-    [kategori_desa, kd_desa]
-);
+            "UPDATE desa_wisata SET kategori_desa = $1 WHERE kd_desa = $2",
+            [kategori_desa, kd_desa]
+        );
 
         return res.status(201).json({
             status: "success",
@@ -161,16 +161,16 @@ const updateSkorDesaWisata = async (req, res) => {
         const kategori_desa = getKategoriDesa(rata_rata);
 
         const query = `
-      UPDATE skor_desa_wisata SET
-        partisipasi_masyarakat = $1,
-        keragaman_paket_wisata = $2,
-        akses_tempat_wisata = $3,
-        keramahan_difabel = $4,
-        fasilitas_tempat_wisata = $5,
-        produk_tempat_wisata = $6
-      WHERE kd_desa = $7
-      RETURNING *
-    `;
+            UPDATE skor_desa_wisata SET
+                partisipasi_masyarakat = $1,
+                keragaman_paket_wisata = $2,
+                akses_tempat_wisata = $3,
+                keramahan_difabel = $4,
+                fasilitas_tempat_wisata = $5,
+                produk_tempat_wisata = $6
+            WHERE kd_desa = $7
+            RETURNING *
+            `;
         const result = await pool.query(query, [
             scores[0], // Use converted number values
             scores[1],
@@ -210,60 +210,92 @@ const updateSkorDesaWisata = async (req, res) => {
 };
 
 const getAllSkorDesaWisata = async (req, res) => {
-  try {
-    const query = `
-          SELECT s.*, d.nama_desa
-          FROM skor_desa_wisata s
-          JOIN desa_wisata d ON s.kd_desa = d.kd_desa
-          ORDER BY s.kd_desa ASC`;
+    try {
+        // Gunakan LEFT JOIN agar semua desa ditampilkan, 
+        // termasuk yang belum memiliki skor
+        const query = `
+            SELECT 
+                d.kd_desa,
+                d.nama_desa,
+                d.kategori_desa,
+                s.partisipasi_masyarakat,
+                s.keragaman_paket_wisata,
+                s.akses_tempat_wisata,
+                s.keramahan_difabel,
+                s.fasilitas_tempat_wisata,
+                s.produk_tempat_wisata,
+                CASE 
+                    WHEN s.kd_desa IS NOT NULL THEN 
+                        ROUND((s.partisipasi_masyarakat + s.keragaman_paket_wisata + 
+                               s.akses_tempat_wisata + s.keramahan_difabel + 
+                               s.fasilitas_tempat_wisata + s.produk_tempat_wisata) / 6.0)
+                    ELSE 0
+                END as rata_rata
+            FROM desa_wisata d
+            LEFT JOIN skor_desa_wisata s ON d.kd_desa = s.kd_desa
+            ORDER BY d.kd_desa ASC`;
 
-    const result = await pool.query(query);
+        const result = await pool.query(query);
 
-    return res.status(200).json({
-      status: "success",
-      data: result.rows,
-    });
-  } catch (err) {
-    console.error("Error fetching skor desa:", err);
-    return res
-      .status(500)
-      .json({ status: "error", message: "Internal server error" });
-  }
+        // Process data untuk memastikan konsistensi
+        const processedData = result.rows.map(row => ({
+            kd_desa: row.kd_desa,
+            nama_desa: row.nama_desa,
+            kategori_desa: row.kategori_desa || "Rintisan", // Default jika kosong
+            partisipasi_masyarakat: row.partisipasi_masyarakat || null,
+            keragaman_paket_wisata: row.keragaman_paket_wisata || null,
+            akses_tempat_wisata: row.akses_tempat_wisata || null,
+            keramahan_difabel: row.keramahan_difabel || null,
+            fasilitas_tempat_wisata: row.fasilitas_tempat_wisata || null,
+            produk_tempat_wisata: row.produk_tempat_wisata || null,
+            rata_rata: row.rata_rata
+        }));
+
+        return res.status(200).json({
+            status: "success",
+            data: processedData,
+        });
+    } catch (err) {
+        console.error("Error fetching skor desa:", err);
+        return res
+            .status(500)
+            .json({ status: "error", message: "Internal server error" });
+    }
 };
 
 const getSkorDesaWisataByID = async (req, res) => {
-  const { kd_desa } = req.params;
+    const { kd_desa } = req.params;
 
-  try {
-    const query = `
-          SELECT * FROM skor_desa_wisata
-          WHERE kd_desa = $1`;
+    try {
+        const query = `
+                SELECT * FROM skor_desa_wisata
+                WHERE kd_desa = $1`;
 
-    const result = await pool.query(query, [kd_desa]);
+        const result = await pool.query(query, [kd_desa]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Skor desa tidak ditemukan",
-      });
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Skor desa tidak ditemukan",
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: result.rows[0],
+        });
+    } catch (err) {
+        console.error("Error fetching skor desa:", err);
+        return res.status(500).json({
+            status: "error",
+            message: "Internal server error",
+        });
     }
-
-    return res.status(200).json({
-      status: "success",
-      data: result.rows[0],
-    });
-  } catch (err) {
-    console.error("Error fetching skor desa:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
-  }
 };
 
 module.exports = {
-  addSkorDesaWisata,
-  updateSkorDesaWisata,
-  getAllSkorDesaWisata,
-  getSkorDesaWisataByID,
+    addSkorDesaWisata,
+    updateSkorDesaWisata,
+    getAllSkorDesaWisata,
+    getSkorDesaWisataByID,
 };
