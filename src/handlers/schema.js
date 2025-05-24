@@ -189,14 +189,14 @@ const entitySchema = Joi.object({
    ============================== */
 
 const deskripsiWisataSchema = Joi.object({
-  penjelasan_umum: Joi.string().required().messages({
-    "string.empty": "Penjelasan umum tidak boleh kosong",
-    "any.required": "Penjelasan umum harus diisi",
-  }),
-  fasilitas: Joi.string().allow("", null),
-  dokumentasi_desa: Joi.string().allow("", null),
-  atraksi: Joi.array().items(entitySchema).default([]),
-  penginapan: Joi.array().items(entitySchema).default([]),
+  // penjelasan_umum: Joi.string().required().messages({
+  //   "string.empty": "Penjelasan umum tidak boleh kosong",
+  //   "any.required": "Penjelasan umum harus diisi",
+  // }),
+  // fasilitas: Joi.string().allow("", null),
+  // dokumentasi_desa: Joi.string().allow("", null),
+  // atraksi: Joi.array().items(entitySchema).default([]),
+  // penginapan: Joi.array().items(entitySchema).default([]),
   paket_wisata: Joi.array()
     .items(
       entitySchema.keys({
