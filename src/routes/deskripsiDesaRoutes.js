@@ -12,8 +12,6 @@ const { checkOwnership } = require('../middleware/checkOwnership');
 
 const router = express.Router();
 
-// Routes
-
 // POST - Buat deskripsi desa baru
 router.post(
   '/deskripsi-desa',
@@ -21,7 +19,8 @@ router.post(
   checkRole('pengelola'),
   uploadFields,
   handleUploadErrors,
-  addDeskripsiDesa
+  checkOwnership,
+  addDeskripsiDesa,
 );
 
 // GET - Ambil deskripsi desa berdasarkan kd_desa
@@ -32,10 +31,10 @@ router.put(
   '/deskripsi-desa/:kd_desa',
   authenticateToken,
   checkRole('pengelola'),
+  checkOwnership,
   uploadFields,
   handleUploadErrors,
-  updateDeskripsiDesa,
-  checkOwnership
+  updateDeskripsiDesa
 );
 
 // DELETE - Hapus deskripsi desa
@@ -43,8 +42,8 @@ router.delete(
   '/deskripsi-desa/:kd_desa',
   authenticateToken,
   checkRole('pengelola'),
+  checkOwnership,
   deleteDeskripsiDesa,
-  checkOwnership
 );
 
 module.exports = router;  

@@ -13,12 +13,11 @@ const addDesaWisata = async (req, res) => {
     pengelola,
     nomor_telepon,
     email,
-    kd_kategori_desa_wisata,
   } = req.body;
 
   const kd_desa = `DESA-${nanoid(10)}`;
 
-  // Validasi input menggunakan Joi
+  // Validasi input menggunakan Joi (tanpa kategori)
   const { error } = desaWisataSchema.validate({
     provinsi,
     kabupaten,
@@ -44,7 +43,6 @@ const addDesaWisata = async (req, res) => {
     // Cek apakah email terdaftar di tabel users
     const checkUserQuery = "SELECT 1 FROM users WHERE email = $1";
     const checkUserResult = await client.query(checkUserQuery, [email]);
-
     if (checkUserResult.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(400).json({
@@ -56,7 +54,6 @@ const addDesaWisata = async (req, res) => {
     // Cek apakah kode desa sudah ada
     const checkDesaQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
     const checkDesaResult = await client.query(checkDesaQuery, [kd_desa]);
-
     if (checkDesaResult.rows.length > 0) {
       await client.query("ROLLBACK");
       return res.status(409).json({
@@ -65,26 +62,11 @@ const addDesaWisata = async (req, res) => {
       });
     }
 
-    // Cek apakah kategori desa wisata valid
-    // const checkKategoriQuery =
-    //   "SELECT 1 FROM kategori_desa_wisata WHERE kd_kategori_desa_wisata = $1";
-    // const checkKategoriResult = await client.query(checkKategoriQuery, [
-    //   kd_kategori_desa_wisata,
-    // ]);
-
-    // if (checkKategoriResult.rows.length === 0) {
-    //   await client.query("ROLLBACK");
-    //   return res.status(400).json({
-    //     status: "fail",
-    //     message: "Kategori desa wisata tidak valid",
-    //   });
-    // }
-
     // Tambahkan data desa wisata ke tabel desa_wisata
     const insertDesaQuery = `
       INSERT INTO desa_wisata (
-        kd_desa, provinsi, kabupaten, nama_desa, nama_popular, alamat, pengelola, nomor_telepon, email, kd_kategori_desa_wisata
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        kd_desa, provinsi, kabupaten, nama_desa, nama_popular, alamat, pengelola, nomor_telepon, email
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     `;
     await client.query(insertDesaQuery, [
       kd_desa,
@@ -96,7 +78,6 @@ const addDesaWisata = async (req, res) => {
       pengelola,
       nomor_telepon,
       email,
-      kd_kategori_desa_wisata,
     ]);
 
     // Tambahkan entri ke tabel permintaan
@@ -113,11 +94,9 @@ const addDesaWisata = async (req, res) => {
     ]);
 
     await client.query("COMMIT");
-
     return res.status(201).json({
       status: "success",
-      message:
-        "Desa wisata berhasil ditambahkan dan sedang dalam proses tinjauan admin",
+      message: "Desa wisata berhasil ditambahkan",
       data: {
         kd_desa,
       },
@@ -145,7 +124,6 @@ const getAllDesaWisata = async (req, res) => {
       ORDER BY dw.kd_desa ASC
     `;
     const result = await pool.query(query);
-
     return res.status(200).json({
       status: "success",
       data: result.rows,
@@ -165,7 +143,6 @@ const getDesaWisataById = async (req, res) => {
   try {
     const query = "SELECT * FROM desa_wisata WHERE kd_desa = $1";
     const result = await pool.query(query, [kd_desa]);
-
     if (result.rows.length === 0) {
       return res.status(404).json({
         status: "fail",
@@ -177,34 +154,7 @@ const getDesaWisataById = async (req, res) => {
       data: result.rows[0],
     });
   } catch (err) {
-    console.error("Error fetching deskripsi wisata:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
-  }
-};
-
-// Mendapatkan desa wisata berdasarkan kd_kategori_desa_wisata
-const getDesaWisataByKategori = async (req, res) => {
-  const { kd_kategori_desa_wisata } = req.params;
-  try {
-    const query =
-      "SELECT * FROM desa_wisata WHERE kd_kategori_desa_wisata = $1";
-    const result = await pool.query(query, [kd_kategori_desa_wisata]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Desa wisata tidak ditemukan",
-      });
-    }
-    return res.status(200).json({
-      status: "success",
-      data: result.rows[0],
-    });
-  } catch (err) {
-    console.error("Error fetching desa wisata by category:", err);
+    console.error("Error fetching desa wisata by ID:", err);
     return res.status(500).json({
       status: "error",
       message: "Internal server error",
@@ -224,12 +174,10 @@ const updateDesaWisata = async (req, res) => {
     pengelola,
     nomor_telepon,
     email,
-    kd_kategori_desa_wisata,
   } = req.body;
 
   // Validasi input menggunakan Joi
   const { error } = desaWisataSchema.validate({
-    kd_desa,
     provinsi,
     kabupaten,
     nama_desa,
@@ -238,7 +186,6 @@ const updateDesaWisata = async (req, res) => {
     pengelola,
     nomor_telepon,
     email,
-    kd_kategori_desa_wisata,
   });
 
   if (error) {
@@ -249,14 +196,12 @@ const updateDesaWisata = async (req, res) => {
   }
 
   const client = await pool.connect();
-  // Hapus desa wisata
   try {
     await client.query("BEGIN");
 
     // Cek apakah desa wisata ada
     const checkQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
     const checkResult = await client.query(checkQuery, [kd_desa]);
-
     if (checkResult.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({
@@ -265,12 +210,12 @@ const updateDesaWisata = async (req, res) => {
       });
     }
 
-    // Update data desa wisata
+    // Update data desa wisata tanpa mengubah kategori_desa
     const updateQuery = `
       UPDATE desa_wisata
-      SET provinsi = $1, kabupaten = $2, nama_desa = $3, nama_popular = $4, alamat = $5,
-          pengelola = $6, nomor_telepon = $7, email = $8, kd_kategori_desa_wisata = $9
-      WHERE kd_desa = $10
+      SET provinsi = $1, kabupaten = $2, nama_desa = $3, nama_popular = $4,
+          alamat = $5, pengelola = $6, nomor_telepon = $7, email = $8
+      WHERE kd_desa = $9
     `;
     await client.query(updateQuery, [
       provinsi,
@@ -281,19 +226,16 @@ const updateDesaWisata = async (req, res) => {
       pengelola,
       nomor_telepon,
       email,
-      kd_kategori_desa_wisata,
       kd_desa,
     ]);
 
     await client.query("COMMIT");
-
     return res.status(200).json({
       status: "success",
       message: "Desa wisata berhasil diperbarui",
     });
   } catch (err) {
     await client.query("ROLLBACK");
-
     console.error("Error updating desa wisata:", err);
     return res.status(500).json({
       status: "error",
@@ -307,7 +249,6 @@ const updateDesaWisata = async (req, res) => {
 // Hapus desa wisata
 const deleteDesaWisata = async (req, res) => {
   const { kd_desa } = req.params;
-
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -315,7 +256,6 @@ const deleteDesaWisata = async (req, res) => {
     // Cek apakah desa wisata ada
     const checkQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
     const checkResult = await client.query(checkQuery, [kd_desa]);
-
     if (checkResult.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({
@@ -324,7 +264,7 @@ const deleteDesaWisata = async (req, res) => {
       });
     }
 
-    // Hapus data dari tabel permintaan terlebih dahulu
+    // Hapus data dari tabel permintaan
     const deletePermintaanQuery = "DELETE FROM permintaan WHERE kd_desa = $1";
     await client.query(deletePermintaanQuery, [kd_desa]);
 
@@ -333,14 +273,12 @@ const deleteDesaWisata = async (req, res) => {
     await client.query(deleteDesaQuery, [kd_desa]);
 
     await client.query("COMMIT");
-
     return res.status(200).json({
       status: "success",
       message: "Desa wisata berhasil dihapus",
     });
   } catch (err) {
     await client.query("ROLLBACK");
-
     console.error("Error deleting desa wisata:", err);
     return res.status(500).json({
       status: "error",
@@ -351,27 +289,24 @@ const deleteDesaWisata = async (req, res) => {
   }
 };
 
+// Mendapatkan desa wisata berdasarkan email user
 const getDesaByUserEmail = async (req, res) => {
   const { email } = req.params;
-
   if (!email) {
     return res.status(400).json({
       status: "fail",
       message: "Query parameter 'email' tidak ditemukan",
     });
   }
-
   try {
     const query = "SELECT * FROM desa_wisata WHERE email = $1";
     const result = await pool.query(query, [email]);
-
     if (result.rows.length === 0) {
       return res.status(404).json({
         status: "fail",
         message: "Pengguna belum memiliki desa wisata.",
       });
     }
-
     return res.status(200).json({
       status: "success",
       data: result.rows,
@@ -389,8 +324,7 @@ module.exports = {
   addDesaWisata,
   getAllDesaWisata,
   getDesaWisataById,
-  getDesaWisataByKategori,
+  getDesaByUserEmail,
   updateDesaWisata,
   deleteDesaWisata,
-  getDesaByUserEmail,
 };

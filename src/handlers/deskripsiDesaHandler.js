@@ -113,30 +113,77 @@ const uploadImageToGCS = async (file) => {
     }
 };
 
+// Fungsi helper untuk mendapatkan nama file dari URL GCS
+const getFileNameFromGCSUrl = (publicUrl) => {
+    if (!publicUrl || typeof publicUrl !== 'string') return null;
+    
+    try {
+        // Extract filename from URL
+        // Format: https://storage.googleapis.com/bucket-name/desa/timestamp-filename.ext
+        const urlParts = publicUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        return `desa/${fileName}`;
+    } catch (error) {
+        console.error('Error extracting filename from URL:', error);
+        return null;
+    }
+};
+
 // Fungsi hapus gambar dari GCS
 const deleteImageFromGCS = async (publicUrl) => {
     if (!publicUrl || typeof publicUrl !== 'string') return;
 
     try {
-        // Extract filename from URL
-        const urlParts = publicUrl.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const filePath = `desa/${fileName}`;
+        const filePath = getFileNameFromGCSUrl(publicUrl);
+        if (!filePath) {
+            console.error('Could not extract file path from URL:', publicUrl);
+            return;
+        }
 
-        await bucket.file(filePath).delete();
-        console.log(`File deleted from GCS: ${filePath}`);
+        const file = bucket.file(filePath);
+        
+        // Check if file exists before trying to delete
+        const [exists] = await file.exists();
+        if (exists) {
+            await file.delete();
+            console.log(`File deleted from GCS: ${filePath}`);
+        } else {
+            console.log(`File not found in GCS: ${filePath}`);
+        }
     } catch (error) {
-        console.error(`Gagal menghapus file dari GCS: ${publicUrl}`, error.message);
-        // Don't throw error, just log it
+        console.error(`Failed to delete file from GCS: ${publicUrl}`, error.message);
+        // Don't throw error, just log it to prevent transaction rollback
     }
 };
 
 // Fungsi hapus multiple gambar dari GCS
 const deleteMultipleImagesFromGCS = async (imageUrls) => {
-    if (!Array.isArray(imageUrls)) return;
+    if (!Array.isArray(imageUrls) || imageUrls.length === 0) return;
 
-    const deletePromises = imageUrls.map(url => deleteImageFromGCS(url));
-    await Promise.allSettled(deletePromises);
+    console.log(`Deleting ${imageUrls.length} images from GCS...`);
+    
+    const deletePromises = imageUrls.map(async (url) => {
+        try {
+            await deleteImageFromGCS(url);
+            return { url, success: true };
+        } catch (error) {
+            console.error(`Failed to delete ${url}:`, error.message);
+            return { url, success: false, error: error.message };
+        }
+    });
+    
+    const results = await Promise.allSettled(deletePromises);
+    
+    const successful = results.filter(result => 
+        result.status === 'fulfilled' && result.value.success
+    ).length;
+    
+    const failed = results.length - successful;
+    
+    console.log(`Successfully deleted: ${successful}/${imageUrls.length} images`);
+    if (failed > 0) {
+        console.log(`Failed to delete: ${failed} images`);
+    }
 };
 
 // Helper function untuk upload multiple files
@@ -156,14 +203,19 @@ const uploadMultipleFiles = async (files) => {
 const addDeskripsiDesa = async (req, res) => {
     let client;
     let uploadedUrls = [];
-
     try {
+        // 💡 DEBUG: Lihat semua input dari request
+        console.log("🔹 Raw Request Body:", req.body);
+        console.log("🔹 Files Uploaded:", req.files);
         client = await pool.connect();
 
         // Parse and validate data
         let data;
         try {
             data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body;
+
+            // 💡 DEBUG: Hasil parsing JSON
+            console.log("🔹 Parsed Data:", data);
         } catch (err) {
             return res.status(400).json({
                 status: "fail",
@@ -173,6 +225,7 @@ const addDeskripsiDesa = async (req, res) => {
 
         const { error, value } = deskripsiDesaSchema.validate(data);
         if (error) {
+            console.error("Joi Validation Error:", error.details[0].message);
             return res.status(400).json({
                 status: "fail",
                 message: error.details[0].message
@@ -181,16 +234,22 @@ const addDeskripsiDesa = async (req, res) => {
 
         const { kd_desa, lokasi_desa, deskripsi_desa, fasilitas_desa, url_video } = value;
 
+        // 💡 DEBUG: Nilai kd_desa sebelum query
+        console.log("🔍 Mencari kode desa di database:", kd_desa);
+
         // Check if kd_desa exists in desa_wisata
         const checkDesa = await client.query(
-            "SELECT kd_desa FROM desa_wisata WHERE kd_desa = $1",
-            [kd_desa]
+            "SELECT TRIM(kd_desa) AS kd_desa FROM desa_wisata WHERE TRIM(kd_desa) ILIKE $1",
+            [kd_desa.trim()]
         );
+
+        // 💡 DEBUG: Hasil query database
+        console.log("📊 Hasil Query Database:", checkDesa.rows);
 
         if (checkDesa.rows.length === 0) {
             return res.status(400).json({
                 status: "fail",
-                message: "Kode desa tidak ditemukan dalam tabel desa_wisata"
+                message: "Kode desa tidak ditemukan dalam tabel desa_wisata. Pastikan kode desa benar."
             });
         }
 
@@ -199,7 +258,6 @@ const addDeskripsiDesa = async (req, res) => {
             "SELECT kd_desa FROM deskripsi_desa WHERE kd_desa = $1",
             [kd_desa]
         );
-
         if (checkExisting.rows.length > 0) {
             return res.status(400).json({
                 status: "fail",
@@ -210,14 +268,12 @@ const addDeskripsiDesa = async (req, res) => {
         // Upload files
         let gambar_cover = null;
         let galeri_desa = [];
-
         if (req.files) {
             // Upload cover image
             if (req.files.gambar_cover && req.files.gambar_cover[0]) {
                 gambar_cover = await uploadImageToGCS(req.files.gambar_cover[0]);
                 uploadedUrls.push(gambar_cover);
             }
-
             // Upload gallery images
             if (req.files.galeri_desa && req.files.galeri_desa.length > 0) {
                 galeri_desa = await uploadMultipleFiles(req.files.galeri_desa);
@@ -233,7 +289,6 @@ const addDeskripsiDesa = async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
       RETURNING *
     `;
-
         const result = await client.query(insertQuery, [
             kd_desa,
             gambar_cover,
@@ -249,14 +304,16 @@ const addDeskripsiDesa = async (req, res) => {
             message: "Deskripsi desa berhasil ditambahkan",
             data: result.rows[0]
         });
-
     } catch (err) {
         // Cleanup uploaded files if database insert fails
         if (uploadedUrls.length > 0) {
             await deleteMultipleImagesFromGCS(uploadedUrls);
         }
 
-        console.error("Error adding deskripsi desa:", err.message);
+        // 💡 DEBUG: Log error detail
+        console.error("🚨 Error adding deskripsi desa:", err.message);
+        console.error("Full error object:", err);
+
         return res.status(500).json({
             status: "error",
             message: "Internal server error"
@@ -310,7 +367,7 @@ const getDeskripsiDesaByKdDesa = async (req, res) => {
     }
 };
 
-// UPDATE - Update deskripsi desa
+// UPDATE - Update deskripsi desa (FIXED VERSION)
 const updateDeskripsiDesa = async (req, res) => {
     const { kd_desa } = req.params;
     let client;
@@ -348,11 +405,17 @@ const updateDeskripsiDesa = async (req, res) => {
             });
         }
 
+        // Extended schema untuk menangani explicit deletion
         const updateSchema = Joi.object({
             lokasi_desa: Joi.string().allow('', null),
             deskripsi_desa: Joi.string().allow('', null),
             fasilitas_desa: Joi.array().items(Joi.string()).default([]),
-            url_video: Joi.array().items(Joi.string().uri()).default([])
+            url_video: Joi.array().items(Joi.string().uri()).default([]),
+            // Flag untuk menghapus gambar
+            remove_cover: Joi.boolean().default(false),
+            remove_gallery: Joi.boolean().default(false),
+            // Array URL gambar gallery yang ingin dipertahankan
+            keep_gallery_images: Joi.array().items(Joi.string().uri()).default([])
         });
 
         const { error, value } = updateSchema.validate(data);
@@ -364,31 +427,80 @@ const updateDeskripsiDesa = async (req, res) => {
             });
         }
 
-        const { lokasi_desa, deskripsi_desa, fasilitas_desa, url_video } = value;
+        const { 
+            lokasi_desa, 
+            deskripsi_desa, 
+            fasilitas_desa, 
+            url_video,
+            remove_cover,
+            remove_gallery,
+            keep_gallery_images
+        } = value;
 
-        // Handle file uploads
+        // Handle cover image
         let gambar_cover = currentData.gambar_cover;
-        let galeri_desa = currentData.galeri_desa || [];
-
-        if (req.files) {
-            // Handle cover image update
-            if (req.files.gambar_cover && req.files.gambar_cover[0]) {
-                // Delete old cover image
-                if (currentData.gambar_cover) {
-                    await deleteImageFromGCS(currentData.gambar_cover);
-                }
-                // Upload new cover image
+        
+        // Jika ada flag untuk menghapus cover atau ada file cover baru
+        if (remove_cover || (req.files && req.files.gambar_cover && req.files.gambar_cover[0])) {
+            // Hapus cover lama dari GCS
+            if (currentData.gambar_cover) {
+                await deleteImageFromGCS(currentData.gambar_cover);
+            }
+            
+            // Set cover ke null jika dihapus, atau upload yang baru
+            if (remove_cover) {
+                gambar_cover = null;
+            } else if (req.files && req.files.gambar_cover && req.files.gambar_cover[0]) {
                 gambar_cover = await uploadImageToGCS(req.files.gambar_cover[0]);
                 uploadedUrls.push(gambar_cover);
             }
+        }
 
-            // Handle gallery images update
-            if (req.files.galeri_desa && req.files.galeri_desa.length > 0) {
-                // Delete old gallery images
+        // Handle gallery images
+        let galeri_desa = currentData.galeri_desa || [];
+        
+        if (remove_gallery) {
+            // Hapus semua gambar gallery
+            if (currentData.galeri_desa && Array.isArray(currentData.galeri_desa)) {
+                await deleteMultipleImagesFromGCS(currentData.galeri_desa);
+            }
+            galeri_desa = [];
+        } else {
+            // Tangani perubahan selective pada gallery
+            const currentGallery = currentData.galeri_desa || [];
+            
+            // Tentukan gambar mana yang akan dihapus
+            const imagesToKeep = keep_gallery_images.filter(url => 
+                currentGallery.includes(url)
+            );
+            
+            const imagesToDelete = currentGallery.filter(url => 
+                !keep_gallery_images.includes(url)
+            );
+            
+            // Hapus gambar yang tidak ada di keep_gallery_images
+            if (imagesToDelete.length > 0) {
+                await deleteMultipleImagesFromGCS(imagesToDelete);
+            }
+            
+            // Mulai dengan gambar yang dipertahankan
+            galeri_desa = [...imagesToKeep];
+            
+            // Tambahkan gambar baru jika ada
+            if (req.files && req.files.galeri_desa && req.files.galeri_desa.length > 0) {
+                const newGalleryImages = await uploadMultipleFiles(req.files.galeri_desa);
+                galeri_desa.push(...newGalleryImages);
+                uploadedUrls.push(...newGalleryImages);
+            }
+            
+            // Atau jika ada file gallery baru, replace semua gallery
+            if (req.files && req.files.galeri_desa && req.files.galeri_desa.length > 0 && keep_gallery_images.length === 0) {
+                // Ini berarti user upload gallery baru tanpa specify keep_gallery_images
+                // Hapus semua gallery lama
                 if (currentData.galeri_desa && Array.isArray(currentData.galeri_desa)) {
                     await deleteMultipleImagesFromGCS(currentData.galeri_desa);
                 }
-                // Upload new gallery images
+                // Upload gallery baru
                 galeri_desa = await uploadMultipleFiles(req.files.galeri_desa);
                 uploadedUrls.push(...galeri_desa);
             }
@@ -396,17 +508,17 @@ const updateDeskripsiDesa = async (req, res) => {
 
         // Update database
         const updateQuery = `
-      UPDATE deskripsi_desa SET
-        gambar_cover = $1,
-        lokasi_desa = $2,
-        deskripsi_desa = $3,
-        fasilitas_desa = $4,
-        url_video = $5,
-        galeri_desa = $6,
-        updated_at = NOW()
-      WHERE kd_desa = $7
-      RETURNING *
-    `;
+            UPDATE deskripsi_desa SET
+                gambar_cover = $1,
+                lokasi_desa = $2,
+                deskripsi_desa = $3,
+                fasilitas_desa = $4,
+                url_video = $5,
+                galeri_desa = $6,
+                updated_at = NOW()
+            WHERE kd_desa = $7
+            RETURNING *
+        `;
 
         const result = await client.query(updateQuery, [
             gambar_cover,
