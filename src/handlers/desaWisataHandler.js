@@ -320,6 +320,34 @@ const getDesaByUserEmail = async (req, res) => {
   }
 };
 
+const getAllDesaWisataWithDetails = async (req, res) => {
+  console.log("getAllDesaWisataWithDetails called");
+  try {
+    const query = `
+      SELECT 
+        d.*, 
+        dd.gambar_cover, 
+        COALESCE(d.kabupaten, '') AS kabupaten, 
+        COALESCE(d.nama_popular, '') AS nama_popular
+      FROM desa_wisata d
+      LEFT JOIN deskripsi_desa dd ON d.kd_desa = dd.kd_desa;
+    `;
+
+    const result = await pool.query(query);
+
+    return res.status(200).json({
+      status: "success",
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching desa wisata details:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   addDesaWisata,
   getAllDesaWisata,
@@ -327,4 +355,6 @@ module.exports = {
   getDesaByUserEmail,
   updateDesaWisata,
   deleteDesaWisata,
+  getDesaByUserEmail,
+  getAllDesaWisataWithDetails,
 };

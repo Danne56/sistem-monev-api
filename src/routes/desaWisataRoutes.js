@@ -6,6 +6,7 @@ const {
   updateDesaWisata,
   deleteDesaWisata,
   getDesaByUserEmail,
+  getAllDesaWisataWithDetails,
 } = require("../handlers/desaWisataHandler");
 const {
   authenticateToken,
@@ -16,6 +17,7 @@ const router = express.Router();
 
 router.post("/desa-wisata", addDesaWisata);
 router.get("/desa-wisata", getAllDesaWisata);
+router.get("/desa-wisata/details", getAllDesaWisataWithDetails);
 router.get("/desa-wisata/:kd_desa", getDesaWisataById);
 
 router.put(
