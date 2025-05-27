@@ -30,8 +30,8 @@ jobs:
             which npm || echo "npm not found"
             which pm2 || echo "pm2 not found"
             
-            cd ~/monev/api
-            git pull origin main
+            cd ~/monev/api-deploy
+            git pull origin prod
             
             # Use full path if needed
             /usr/bin/npm install || npm install
