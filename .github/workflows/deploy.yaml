@@ -19,6 +19,7 @@ jobs:
           port: 10500
           script: |
             # Load environment variables
+            exec bash
             source ~/.bashrc
             source ~/.profile
             
