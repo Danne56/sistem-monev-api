@@ -20,8 +20,7 @@ jobs:
           script: |
             # Load environment variables
             #!/bin/bash
-            source ~/.bashrc
-            source ~/.profile
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
             
             # Or specify full path to node/npm
             export PATH=$PATH:/usr/local/bin:/usr/bin
