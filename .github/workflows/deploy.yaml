@@ -19,9 +19,9 @@ jobs:
           port: 10500
           script: |
             # Load environment variables
+            #!/bin/bash
             source ~/.bashrc
             source ~/.profile
-            exec bash
             
             # Or specify full path to node/npm
             export PATH=$PATH:/usr/local/bin:/usr/bin
