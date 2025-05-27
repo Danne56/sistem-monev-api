@@ -145,14 +145,3 @@
 
    Aplikasi akan berjalan di `http://localhost:5000`.
 
-## **Dokumentasi API**
-
-API ini didokumentasikan menggunakan **OpenAPI (Swagger)**. Anda dapat mengakses dokumentasi interaktif melalui Swagger UI.
-
-### **Cara Mengakses Dokumentasi**
-
-- Setelah menjalankan aplikasi, buka browser dan akses URL berikut:
-
-   ```bash
-   http://localhost:5000/api-docs
-   ```
