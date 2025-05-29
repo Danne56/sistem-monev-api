@@ -183,9 +183,6 @@ const addDeskripsiWisata = async (req, res) => {
 
     const {
       kd_desa,
-      penjelasan_umum,
-      fasilitas,
-      dokumentasi_desa,
       atraksi = [],
       penginapan = [],
       paket_wisata = [],
@@ -193,9 +190,6 @@ const addDeskripsiWisata = async (req, res) => {
     } = data;
 
     const { error } = deskripsiWisataSchema.validate({
-      penjelasan_umum,
-      fasilitas,
-      dokumentasi_desa,
       atraksi,
       penginapan,
       paket_wisata,
@@ -234,17 +228,13 @@ const addDeskripsiWisata = async (req, res) => {
 
     const insertQuery = `
       INSERT INTO deskripsi_wisata (
-        kd_desa, penjelasan_umum, fasilitas, dokumentasi_desa,
-        atraksi, penginapan, paket_wisata, suvenir, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        kd_desa, atraksi, penginapan, paket_wisata, suvenir, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
       RETURNING kd_desa
     `;
 
     const result = await client.query(insertQuery, [
       kd_desa,
-      penjelasan_umum,
-      fasilitas,
-      dokumentasi_desa,
       JSON.stringify(atraksiWithImages),
       JSON.stringify(penginapanWithImages),
       JSON.stringify(paketWisataWithImages),
@@ -335,10 +325,9 @@ const getDeskripsiWisataByKdDesa = async (req, res) => {
 
     if (withDesa) {
       query = `
-        SELECT dw.*, d.nama_desa, d.lokasi, d.deskripsi_singkat
-        FROM deskripsi_wisata dw
-        JOIN desa_wisata d ON dw.kd_desa = d.kd_desa
-        WHERE dw.kd_desa = $1
+        SELECT *
+        FROM deskripsi_wisata
+        WHERE kd_desa = $1
       `;
     }
 
@@ -398,15 +387,12 @@ const updateDeskripsiWisata = async (req, res) => {
       suvenir = [],
     } = data;
 
-    // const { error } = deskripsiWisataSchema.validate({
-    //   penjelasan_umum,
-    //   fasilitas,
-    //   dokumentasi_desa,
-    //   atraksi,
-    //   penginapan,
-    //   paket_wisata,
-    //   suvenir,
-    // });
+    const { error } = deskripsiWisataSchema.validate({
+      atraksi,
+      penginapan,
+      paket_wisata,
+      suvenir,
+    });
     if (error) {
       return res
         .status(400)
@@ -460,15 +446,12 @@ const updateDeskripsiWisata = async (req, res) => {
 
     const updateQuery = `
       UPDATE deskripsi_wisata SET
-        penjelasan_umum = $1,
-        fasilitas = $2,
-        dokumentasi_desa = $3,
-        atraksi = $4,
-        penginapan = $5,
-        paket_wisata = $6,
-        suvenir = $7,
+        atraksi = $1,
+        penginapan = $2,
+        paket_wisata = $3,
+        suvenir = $4,
         updated_at = NOW()
-      WHERE kd_desa = $8
+      WHERE kd_desa = $5
       RETURNING *
     `;
 
@@ -869,7 +852,7 @@ module.exports = {
   handleUploadErrors,
   patchDeskripsiWisata,
   patchRemoveItemDeskripsiWisata,
-  uploadGambar, // Tambahkan endpoint baru
-  uploadImageToGCS, // Export fungsi upload
-  deleteImageFromGCS, // Export fungsi delete
+  uploadGambar,
+  uploadImageToGCS,
+  deleteImageFromGCS,
 };

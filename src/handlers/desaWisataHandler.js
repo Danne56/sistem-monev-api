@@ -299,7 +299,7 @@ const getDesaByUserEmail = async (req, res) => {
     });
   }
   try {
-    const query = "SELECT * FROM desa_wisata WHERE email = $1";
+    const query = "SELECT kd_desa, nama_desa FROM desa_wisata WHERE email = $1";
     const result = await pool.query(query, [email]);
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -325,8 +325,9 @@ const getAllDesaWisataWithDetails = async (req, res) => {
   try {
     const query = `
       SELECT 
-        d.*, 
-        dd.gambar_cover, 
+        d.kd_desa,
+        COALESCE(dd.gambar_cover, '') AS gambar_cover,
+        COALESCE(d.provinsi, '') AS provinsi,
         COALESCE(d.kabupaten, '') AS kabupaten, 
         COALESCE(d.nama_popular, '') AS nama_popular
       FROM desa_wisata d
@@ -352,7 +353,6 @@ module.exports = {
   addDesaWisata,
   getAllDesaWisata,
   getDesaWisataById,
-  getDesaByUserEmail,
   updateDesaWisata,
   deleteDesaWisata,
   getDesaByUserEmail,

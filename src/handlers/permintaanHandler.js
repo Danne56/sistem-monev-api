@@ -90,7 +90,7 @@ const addPermintaan = async (req, res) => {
 const getAllPermintaan = async (req, res) => {
   try {
     const query = `
-        SELECT p.*, u.full_name AS nama_pengguna, dw.nama_desa AS nama_desa_wisata
+        SELECT p.kd_permintaan, p.email, dw.nama_desa AS nama_desa_wisata, p.created_at, p.status_permintaan, p.kd_desa
         FROM permintaan p
         LEFT JOIN users u ON p.email = u.email
         LEFT JOIN desa_wisata dw ON p.kd_desa = dw.kd_desa
@@ -116,7 +116,7 @@ const getPermintaanById = async (req, res) => {
 
   try {
     const query = `
-        SELECT p.*, u.full_name AS nama_pengguna, dw.nama_desa AS nama_desa_wisata
+        SELECT p.kd_permintaan, p.email, dw.nama_desa AS nama_desa_wisata, p.created_at, p.status_permintaan, p.kd_desa
         FROM permintaan p
         LEFT JOIN users u ON p.email = u.email
         LEFT JOIN desa_wisata dw ON p.kd_desa = dw.kd_desa
