@@ -95,12 +95,12 @@ const deleteImageFromGCS = async (publicUrl) => {
   if (!publicUrl || typeof publicUrl !== "string") return;
 
   try {
-    const fileNameMatch = publicUrl.match(/\/([^/]+)$/);
-    if (!fileNameMatch) return;
+    const urlParts = new URL(publicUrl);
+    const pathParts = urlParts.pathname.split("/");
+    const fileName = pathParts.slice(2).join("/");
 
-    const fileName = decodeURIComponent(fileNameMatch[1]);
     await bucket.file(fileName).delete();
-    console.log(`File deleted from GCS: ${fileName}`);
+    console.log(`File dihapus dari GCS: ${fileName}`);
   } catch (error) {
     console.error(`Gagal menghapus file dari GCS:`, error.message);
   }
