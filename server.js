@@ -8,6 +8,7 @@ const statusDesaRoutes = require("./src/routes/statusDesaRoutes");
 const permintaanRoutes = require("./src/routes/permintaanRoutes");
 const skorDesaRoutes = require("./src/routes/skorDesaRoutes");
 const deskripsiDesaRoutes = require("./src/routes/deskripsiDesaRoutes");
+const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
 const helmet = require("helmet");
 
@@ -23,7 +24,15 @@ app.use(cors({ origin: "*" })); // Mengizinkan semua origin untuk akses API
 // Debug Logging
 if (process.env.NODE_ENV === "development") {
   app.use((req, res, next) => {
-    console.log("\n[DEV]", req.method, req.url, "| Body:", req.body);
+    console.log(
+      "\n[DEV]",
+      req.method,
+      req.url,
+      "| Body:",
+      req.body,
+      "| Query:",
+      req.query
+    );
     next();
   });
 } else {
@@ -56,7 +65,8 @@ app.use(
   statusDesaRoutes,
   permintaanRoutes,
   skorDesaRoutes,
-  deskripsiDesaRoutes
+  deskripsiDesaRoutes,
+  userRoutes
 );
 
 app.use((req, res, next) => {

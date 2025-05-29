@@ -70,7 +70,7 @@ const addStatusDesa = async (req, res) => {
 const getAllStatusDesa = async (req, res) => {
   try {
     const query = `
-    SELECT s.*, dw.nama_desa AS nama_desa_wisata, dw.provinsi, dw.kabupaten
+    SELECT s.kd_status, s.status, s.keterangan, s.tanggal_update, dw.nama_desa AS nama_desa_wisata, dw.provinsi, dw.kabupaten
     FROM status_desa s
     LEFT JOIN desa_wisata dw ON s.kd_desa = dw.kd_desa
     ORDER BY s.tanggal_update DESC
