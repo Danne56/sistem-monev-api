@@ -1,7 +1,7 @@
 const { nanoid } = require("nanoid");
 const pool = require("../config/db");
 const { desaWisataSchema } = require("../handlers/schema");
-const { slugify } = require("../utils/slugify");
+const slugify = require("../utils/slugify");
 
 // Menambahkan desa wisata
 const addDesaWisata = async (req, res) => {
