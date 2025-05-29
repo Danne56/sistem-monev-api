@@ -7,6 +7,7 @@ const {
   deleteDesaWisata,
   getDesaByUserEmail,
   getAllDesaWisataWithDetails,
+  getDesaWisataBySlug,
 } = require("../handlers/desaWisataHandler");
 const {
   authenticateToken,
@@ -35,5 +36,7 @@ router.delete(
 );
 
 router.get("/desa-wisata/email/:email", getDesaByUserEmail);
+
+router.get("/desa-wisata/slug/:slug", getDesaWisataBySlug);
 
 module.exports = router;
