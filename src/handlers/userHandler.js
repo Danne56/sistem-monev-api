@@ -80,4 +80,42 @@ const registerUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser };
+const getAllUsers = async (req, res) => {
+  const client = await pool.connect();
+  const includeDesa = req.query.includeDesa === "true";
+
+  try {
+    let query;
+
+    if (includeDesa) {
+      query = `
+        SELECT u.full_name, u.email, u.is_verified, dw.nama_desa
+        FROM users u
+        LEFT JOIN desa_wisata dw ON u.email = dw.email
+        WHERE dw.kd_desa IS NOT NULL
+      `;
+    } else {
+      query = `
+        SELECT full_name, email, is_verified
+        FROM users
+      `;
+    }
+
+    const result = await client.query(query);
+
+    return res.status(200).json({
+      status: "success",
+      data: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { registerUser, getAllUsers };
