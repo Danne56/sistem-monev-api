@@ -5,7 +5,7 @@ const {
   updateDeskripsiDesa,
   deleteDeskripsiDesa,
   uploadFields,
-  handleUploadErrors
+  handleUploadErrors,
 } = require('../handlers/deskripsiDesaHandler');
 const { authenticateToken, checkRole } = require('../middleware/authMiddleware');
 const { checkOwnership } = require('../middleware/checkOwnership');
