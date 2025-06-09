@@ -15,20 +15,23 @@ const deskripsiDesaSchema = Joi.object({
   kd_desa: Joi.string().required().messages({
     "any.required": "Kode desa wajib diisi",
   }),
-  jenis_desa: Joi.array().items(Joi.string().valid("alam", "budaya", "buatan")).min(1).required(),
+  jenis_desa: Joi.array()
+    .items(Joi.string().valid("alam", "budaya", "buatan"))
+    .min(1)
+    .required(),
   lokasi_desa: Joi.string().allow("", null),
   deskripsi_desa: Joi.string().allow("", null),
   fasilitas_desa: Joi.array().items(Joi.string()).default([]),
   url_video: Joi.array().items(Joi.string().uri()).default([]),
-    // TAMBAHAN BARU untuk koordinat
-    latitude: Joi.number().min(-90).max(90).allow(null).messages({
-        "number.min": "Latitude harus antara -90 dan 90",
-        "number.max": "Latitude harus antara -90 dan 90",
-    }),
-    longitude: Joi.number().min(-180).max(180).allow(null).messages({
-        "number.min": "Longitude harus antara -180 dan 180",
-        "number.max": "Longitude harus antara -180 dan 180",
-    }),
+  // TAMBAHAN BARU untuk koordinat
+  latitude: Joi.number().min(-90).max(90).allow(null).messages({
+    "number.min": "Latitude harus antara -90 dan 90",
+    "number.max": "Latitude harus antara -90 dan 90",
+  }),
+  longitude: Joi.number().min(-180).max(180).allow(null).messages({
+    "number.min": "Longitude harus antara -180 dan 180",
+    "number.max": "Longitude harus antara -180 dan 180",
+  }),
 });
 
 // File validation
@@ -91,7 +94,10 @@ const handleUploadErrors = (err, req, res, next) => {
 const uploadImageToGCS = async (file) => {
   try {
     const timestamp = Date.now();
-    const fileName = `desa/${timestamp}-${file.originalname.replace(/\s+/g, "-")}`;
+    const fileName = `desa/${timestamp}-${file.originalname.replace(
+      /\s+/g,
+      "-"
+    )}`;
     const blob = bucket.file(fileName);
 
     const blobStream = blob.createWriteStream({
@@ -159,7 +165,9 @@ const deleteMultipleImagesFromGCS = async (imageUrls) => {
 
   const results = await Promise.allSettled(deletePromises);
 
-  const successful = results.filter((result) => result.status === "fulfilled" && result.value.success).length;
+  const successful = results.filter(
+    (result) => result.status === "fulfilled" && result.value.success
+  ).length;
 
   const failed = results.length - successful;
 
@@ -184,30 +192,30 @@ const uploadMultipleFiles = async (files) => {
 
 // CREATE - Tambah deskripsi desa
 const addDeskripsiDesa = async (req, res) => {
-    let client;
-    let uploadedUrls = [];
+  let client;
+  let uploadedUrls = [];
+  try {
+    // 💡 DEBUG: Lihat semua input dari request
+    console.log("🔹 Raw Request Body:", req.body);
+    console.log("🔹 Files Uploaded:", req.files);
+    client = await pool.connect();
+
+    // Parse and validate data
+    let data;
     try {
-        // 💡 DEBUG: Lihat semua input dari request
-        console.log("🔹 Raw Request Body:", req.body);
-        console.log("🔹 Files Uploaded:", req.files);
-        client = await pool.connect();
+      data =
+        typeof req.body.data === "string"
+          ? JSON.parse(req.body.data)
+          : req.body;
 
-        // Parse and validate data
-        let data;
-        try {
-            data =
-                typeof req.body.data === "string"
-                    ? JSON.parse(req.body.data)
-                    : req.body;
-
-            // 💡 DEBUG: Hasil parsing JSON
-            console.log("🔹 Parsed Data:", data);
-        } catch (err) {
-            return res.status(400).json({
-                status: "fail",
-                message: "Format data tidak valid",
-            });
-        }
+      // 💡 DEBUG: Hasil parsing JSON
+      console.log("🔹 Parsed Data:", data);
+    } catch (err) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Format data tidak valid",
+      });
+    }
 
     const { error, value } = deskripsiDesaSchema.validate(data);
     if (error) {
@@ -218,36 +226,40 @@ const addDeskripsiDesa = async (req, res) => {
       });
     }
 
-        const { 
-            kd_desa,
-            jenis_desa,
-            lokasi_desa,
-            deskripsi_desa,
-            fasilitas_desa,
-            url_video,
-            latitude,    // TAMBAHAN BARU
-            longitude    // TAMBAHAN BARU
-        } = value;
+    const {
+      kd_desa,
+      jenis_desa,
+      lokasi_desa,
+      deskripsi_desa,
+      fasilitas_desa,
+      url_video,
+      latitude, // TAMBAHAN BARU
+      longitude, // TAMBAHAN BARU
+    } = value;
 
-        console.log("🔍 Mencari kode desa di database:", kd_desa);
+    console.log("🔍 Mencari kode desa di database:", kd_desa);
 
-        // Check if kd_desa exists in desa_wisata
-        const checkDesa = await client.query(
-            "SELECT TRIM(kd_desa) AS kd_desa FROM desa_wisata WHERE TRIM(kd_desa) ILIKE $1",
-            [kd_desa.trim()]
-        );
+    // Check if kd_desa exists in desa_wisata
+    const checkDesa = await client.query(
+      "SELECT TRIM(kd_desa) AS kd_desa FROM desa_wisata WHERE TRIM(kd_desa) ILIKE $1",
+      [kd_desa.trim()]
+    );
 
-        console.log("📊 Hasil Query Database:", checkDesa.rows);
+    console.log("📊 Hasil Query Database:", checkDesa.rows);
 
-        if (checkDesa.rows.length === 0) {
-            return res.status(400).json({
-                status: "fail",
-                message: "Kode desa tidak ditemukan dalam tabel desa_wisata. Pastikan kode desa benar.",
-            });
-        }
+    if (checkDesa.rows.length === 0) {
+      return res.status(400).json({
+        status: "fail",
+        message:
+          "Kode desa tidak ditemukan dalam tabel desa_wisata. Pastikan kode desa benar.",
+      });
+    }
 
     // Cek apakah deskripsi sudah ada
-    const checkExisting = await client.query("SELECT kd_desa FROM deskripsi_desa WHERE kd_desa = $1", [kd_desa]);
+    const checkExisting = await client.query(
+      "SELECT kd_desa FROM deskripsi_desa WHERE kd_desa = $1",
+      [kd_desa]
+    );
     if (checkExisting.rows.length > 0) {
       return res.status(400).json({
         status: "fail",
@@ -269,8 +281,8 @@ const addDeskripsiDesa = async (req, res) => {
       }
     }
 
-        // Insert to database - UPDATED QUERY
-        const insertQuery = `
+    // Insert to database - UPDATED QUERY
+    const insertQuery = `
             INSERT INTO deskripsi_desa (
                 kd_desa, jenis_desa, gambar_cover, lokasi_desa, deskripsi_desa, 
                 fasilitas_desa, url_video, galeri_desa, latitude, longitude,
@@ -278,18 +290,18 @@ const addDeskripsiDesa = async (req, res) => {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
             RETURNING *
         `;
-        const result = await client.query(insertQuery, [
-            kd_desa,
-            jenis_desa,
-            gambar_cover,
-            lokasi_desa,
-            deskripsi_desa,
-            fasilitas_desa,
-            url_video,
-            galeri_desa,
-            latitude,    
-            longitude    
-        ]);
+    const result = await client.query(insertQuery, [
+      kd_desa,
+      jenis_desa,
+      gambar_cover,
+      lokasi_desa,
+      deskripsi_desa,
+      fasilitas_desa,
+      url_video,
+      galeri_desa,
+      latitude,
+      longitude,
+    ]);
 
     return res.status(201).json({
       status: "success",
@@ -301,9 +313,9 @@ const addDeskripsiDesa = async (req, res) => {
       await deleteMultipleImagesFromGCS(uploadedUrls);
     }
 
-        // 💡 DEBUG: Log error detail
-        console.error("🚨 Error adding deskripsi desa:", err.message);
-        console.error("Full error object:", err);
+    // 💡 DEBUG: Log error detail
+    console.error("🚨 Error adding deskripsi desa:", err.message);
+    console.error("Full error object:", err);
 
     return res.status(500).json({
       status: "error",
@@ -401,7 +413,10 @@ const updateDeskripsiDesa = async (req, res) => {
     await client.query("BEGIN");
 
     // Get existing data
-    const existingData = await client.query("SELECT * FROM deskripsi_desa WHERE kd_desa = $1", [kd_desa]);
+    const existingData = await client.query(
+      "SELECT * FROM deskripsi_desa WHERE kd_desa = $1",
+      [kd_desa]
+    );
 
     if (existingData.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -416,7 +431,10 @@ const updateDeskripsiDesa = async (req, res) => {
     // Parse and validate new data
     let data;
     try {
-      data = typeof req.body.data === "string" ? JSON.parse(req.body.data) : req.body;
+      data =
+        typeof req.body.data === "string"
+          ? JSON.parse(req.body.data)
+          : req.body;
     } catch (err) {
       await client.query("ROLLBACK");
       return res.status(400).json({
@@ -425,24 +443,28 @@ const updateDeskripsiDesa = async (req, res) => {
       });
     }
 
-        // Extended schema untuk update - DENGAN KOORDINAT
-        const updateSchema = Joi.object({
-            lokasi_desa: Joi.string().allow('', null),
-            deskripsi_desa: Joi.string().allow('', null),
-            fasilitas_desa: Joi.array().items(Joi.string()).default([]),
-            url_video: Joi.array().items(Joi.string().uri()).default([]),
-            remove_cover: Joi.boolean().default(false),
-            keep_gallery_images: Joi.array().items(Joi.string().uri()).default([]),
-            // TAMBAHAN BARU untuk koordinat
-            latitude: Joi.number().min(-90).max(90).allow(null).messages({
-                "number.min": "Latitude harus antara -90 dan 90",
-                "number.max": "Latitude harus antara -90 dan 90",
-            }),
-            longitude: Joi.number().min(-180).max(180).allow(null).messages({
-                "number.min": "Longitude harus antara -180 dan 180",
-                "number.max": "Longitude harus antara -180 dan 180",
-            }),
-        });
+    // Extended schema untuk update - DENGAN KOORDINAT DAN JENIS_DESA
+    const updateSchema = Joi.object({
+      jenis_desa: Joi.array()
+        .items(Joi.string().valid("alam", "budaya", "buatan"))
+        .min(1)
+        .optional(),
+      lokasi_desa: Joi.string().allow("", null),
+      deskripsi_desa: Joi.string().allow("", null),
+      fasilitas_desa: Joi.array().items(Joi.string()).default([]),
+      url_video: Joi.array().items(Joi.string().uri()).default([]),
+      remove_cover: Joi.boolean().default(false),
+      keep_gallery_images: Joi.array().items(Joi.string().uri()).default([]),
+      // TAMBAHAN BARU untuk koordinat
+      latitude: Joi.number().min(-90).max(90).allow(null).messages({
+        "number.min": "Latitude harus antara -90 dan 90",
+        "number.max": "Latitude harus antara -90 dan 90",
+      }),
+      longitude: Joi.number().min(-180).max(180).allow(null).messages({
+        "number.min": "Longitude harus antara -180 dan 180",
+        "number.max": "Longitude harus antara -180 dan 180",
+      }),
+    });
 
     const { error, value } = updateSchema.validate(data);
     if (error) {
@@ -453,21 +475,23 @@ const updateDeskripsiDesa = async (req, res) => {
       });
     }
 
-        const {
-            lokasi_desa,
-            deskripsi_desa,
-            fasilitas_desa,
-            url_video,
-            remove_cover,
-            keep_gallery_images,
-            latitude,    // TAMBAHAN BARU
-            longitude    // TAMBAHAN BARU
-        } = value;
+    const {
+      jenis_desa,
+      lokasi_desa,
+      deskripsi_desa,
+      fasilitas_desa,
+      url_video,
+      remove_cover,
+      keep_gallery_images,
+      latitude, // TAMBAHAN BARU
+      longitude, // TAMBAHAN BARU
+    } = value;
 
     // Handle cover image
     let gambar_cover = currentData.gambar_cover;
     if (remove_cover || req.files?.gambar_cover?.[0]) {
-      if (currentData.gambar_cover) await deleteImageFromGCS(currentData.gambar_cover);
+      if (currentData.gambar_cover)
+        await deleteImageFromGCS(currentData.gambar_cover);
       if (remove_cover) {
         gambar_cover = null;
       } else {
@@ -478,9 +502,14 @@ const updateDeskripsiDesa = async (req, res) => {
 
     // Handle gallery images
     const currentGallery = currentData.galeri_desa || [];
-    const imagesToKeep = keep_gallery_images.filter((url) => currentGallery.includes(url));
-    const imagesToDelete = currentGallery.filter((url) => !imagesToKeep.includes(url));
-    if (imagesToDelete.length > 0) await deleteMultipleImagesFromGCS(imagesToDelete);
+    const imagesToKeep = keep_gallery_images.filter((url) =>
+      currentGallery.includes(url)
+    );
+    const imagesToDelete = currentGallery.filter(
+      (url) => !imagesToKeep.includes(url)
+    );
+    if (imagesToDelete.length > 0)
+      await deleteMultipleImagesFromGCS(imagesToDelete);
 
     let galeri_desa = [...imagesToKeep];
     if (req.files?.galeri_desa?.length > 0) {
@@ -489,33 +518,35 @@ const updateDeskripsiDesa = async (req, res) => {
       uploadedUrls.push(...newGalleryImages);
     }
 
-        // UPDATE QUERY - DENGAN KOORDINAT
-        const updateQuery = `
-            UPDATE deskripsi_desa SET
-                gambar_cover = $1,
-                lokasi_desa = $2,
-                deskripsi_desa = $3,
-                fasilitas_desa = $4,
-                url_video = $5,
-                galeri_desa = $6,
-                latitude = $7,
-                longitude = $8,
-                updated_at = NOW()
-            WHERE kd_desa = $9
-            RETURNING *
-        `;
+    // UPDATE QUERY - DENGAN KOORDINAT DAN JENIS_DESA
+    const updateQuery = `
+        UPDATE deskripsi_desa SET
+          jenis_desa = COALESCE($1, jenis_desa),
+          gambar_cover = $2,
+          lokasi_desa = $3,
+          deskripsi_desa = $4,
+          fasilitas_desa = $5,
+          url_video = $6,
+          galeri_desa = $7,
+          latitude = $8,
+          longitude = $9,
+          updated_at = NOW()
+        WHERE kd_desa = $10
+        RETURNING *
+      `;
 
-        const result = await client.query(updateQuery, [
-            gambar_cover,
-            lokasi_desa,
-            deskripsi_desa,
-            fasilitas_desa,
-            url_video,
-            galeri_desa,
-            latitude,    // TAMBAHAN BARU
-            longitude,   // TAMBAHAN BARU
-            kd_desa,
-        ]);
+    const result = await client.query(updateQuery, [
+      jenis_desa,
+      gambar_cover,
+      lokasi_desa,
+      deskripsi_desa,
+      fasilitas_desa,
+      url_video,
+      galeri_desa,
+      latitude, // TAMBAHAN BARU
+      longitude, // TAMBAHAN BARU
+      kd_desa,
+    ]);
 
     await client.query("COMMIT");
 
@@ -526,7 +557,8 @@ const updateDeskripsiDesa = async (req, res) => {
     });
   } catch (err) {
     if (client) await client.query("ROLLBACK").catch(console.error);
-    if (uploadedUrls.length > 0) await deleteMultipleImagesFromGCS(uploadedUrls);
+    if (uploadedUrls.length > 0)
+      await deleteMultipleImagesFromGCS(uploadedUrls);
 
     console.error("Error updating deskripsi desa:", err);
     return res.status(500).json({
@@ -548,7 +580,10 @@ const deleteDeskripsiDesa = async (req, res) => {
     await client.query("BEGIN");
 
     // Get existing data to delete images
-    const result = await client.query("SELECT * FROM deskripsi_desa WHERE kd_desa = $1", [kd_desa]);
+    const result = await client.query(
+      "SELECT * FROM deskripsi_desa WHERE kd_desa = $1",
+      [kd_desa]
+    );
 
     if (result.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -576,7 +611,9 @@ const deleteDeskripsiDesa = async (req, res) => {
     }
 
     // Delete from database
-    await client.query("DELETE FROM deskripsi_desa WHERE kd_desa = $1", [kd_desa]);
+    await client.query("DELETE FROM deskripsi_desa WHERE kd_desa = $1", [
+      kd_desa,
+    ]);
     await client.query("COMMIT");
 
     return res.status(200).json({
