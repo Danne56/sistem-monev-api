@@ -8,6 +8,6 @@ const {
 
 const router = express.Router();
 
-router.get("/users", authenticateToken, checkRole("admin"), getAllUsers);
+router.get("/users", getAllUsers);
 
 module.exports = router;
