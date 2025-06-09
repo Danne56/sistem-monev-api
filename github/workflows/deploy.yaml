@@ -1,0 +1,43 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
+          port: 10500
+          script: |
+            # Load environment variables
+            #!/bin/bash
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+            
+            # Or specify full path to node/npm
+            export PATH=$PATH:/usr/local/bin:/usr/bin
+            
+            # Check if node and npm exist
+            which node || echo "Node.js not found"
+            which npm || echo "npm not found"
+            which pm2 || echo "pm2 not found"
+            
+            cd ~/monev/api-deploy
+            git pull origin prod
+            
+            # Use full path if needed
+            /usr/bin/npm install || npm install
+            
+            # Install pm2 if not exists
+            npm list -g pm2 || npm install -g pm2
+            
+            # Restart with full path or use npx
+            pm2 restart monev-api || npx pm2 restart monev-api
