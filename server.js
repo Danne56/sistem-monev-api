@@ -10,8 +10,6 @@ const skorDesaRoutes = require("./src/routes/skorDesaRoutes");
 const deskripsiDesaRoutes = require("./src/routes/deskripsiDesaRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
-const swaggerUi = require("swagger-ui-express");
-const YAML = require("yamljs");
 const helmet = require("helmet");
 
 const app = express();
@@ -42,14 +40,6 @@ if (process.env.NODE_ENV === "development") {
     console.log(req.method, req.url); // Menampilkan metode dan URL dari request
     next();
   });
-}
-
-// Load file OpenAPI YAML
-const swaggerDocument = YAML.load("./openapi.yaml");
-
-// Serve Swagger UI
-if (process.env.NODE_ENV === "development") {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 }
 
 // Middleware untuk memastikan route development tidak dipakai di production
