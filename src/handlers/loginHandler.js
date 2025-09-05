@@ -1,8 +1,8 @@
-require("dotenv").config();
-const pool = require("../config/db");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { loginSchema } = require("./schema");
+require('dotenv').config();
+const pool = require('../config/db');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { loginSchema } = require('./schema');
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -11,20 +11,20 @@ const loginUser = async (req, res) => {
   const { error } = loginSchema.validate({ email, password });
   if (error) {
     return res.status(400).json({
-      status: "fail",
+      status: 'fail',
       message: error.details[0].message,
     });
   }
 
   try {
     // Cek apakah email ada di tabel users
-    const userQuery = "SELECT * FROM users WHERE email = $1";
+    const userQuery = 'SELECT * FROM users WHERE email = $1';
     const userResult = await pool.query(userQuery, [email]);
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({
-        status: "fail",
-        message: "Email tidak terdaftar",
+        status: 'fail',
+        message: 'Email tidak terdaftar',
       });
     }
 
@@ -33,9 +33,9 @@ const loginUser = async (req, res) => {
     // Cek apakah akun belum diverifikasi
     if (!user.is_verified) {
       return res.status(403).json({
-        status: "fail",
+        status: 'fail',
         message:
-          "Akun belum diverifikasi. Silakan tunggu verifikasi dari admin.",
+          'Akun belum diverifikasi. Silakan tunggu verifikasi dari admin.',
       });
     }
 
@@ -43,18 +43,21 @@ const loginUser = async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.status(401).json({
-        status: "fail",
-        message: "Password salah",
+        status: 'fail',
+        message: 'Password salah',
       });
     }
 
     // Buat token JWT
-    const secret = process.env.NODE_ENV === "development"
-      ? process.env.JWT_SECRET_DEV
-      : process.env.JWT_SECRET;
+    const secret =
+      process.env.NODE_ENV === 'development'
+        ? process.env.JWT_SECRET_DEV
+        : process.env.JWT_SECRET;
 
     if (!secret) {
-      return res.status(500).json({ status: "error", message: "Secret key tidak tersedia." });
+      return res
+        .status(500)
+        .json({ status: 'error', message: 'Secret key tidak tersedia.' });
     }
 
     const token = jwt.sign(
@@ -65,19 +68,19 @@ const loginUser = async (req, res) => {
         role: user.role,
       },
       secret,
-      { expiresIn: "30d" }
+      { expiresIn: '30d' }
     );
 
     return res.status(200).json({
-      status: "success",
-      message: "Login berhasil",
+      status: 'success',
+      message: 'Login berhasil',
       token,
     });
   } catch (err) {
-    console.error("Error logging in:", err);
+    console.error('Error logging in:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   }
 };
