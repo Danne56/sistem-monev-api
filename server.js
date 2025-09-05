@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/authentication', authRoutes);
+app.use('/auth', authRoutes);
 app.use(
   '/api',
   desaWisataRoutes,

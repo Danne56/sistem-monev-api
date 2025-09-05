@@ -1,8 +1,14 @@
 const pool = require('../config/db');
-const { bucket } = require('../utils/gcsConfig');
+const { Storage } = require('@google-cloud/storage');
 const multer = require('multer');
 const Joi = require('joi');
 require('dotenv').config();
+
+// Setup GCP Storage
+const storage = new Storage({
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+});
+const bucket = storage.bucket(process.env.BUCKET_NAME);
 
 // Validation Schema
 const deskripsiDesaSchema = Joi.object({
