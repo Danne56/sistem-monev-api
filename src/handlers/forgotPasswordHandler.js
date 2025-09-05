@@ -1,13 +1,13 @@
-const pool = require("../config/db");
-const nodemailer = require("nodemailer");
-const crypto = require("crypto");
+const pool = require('../config/db');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 // Import schema validasi
-const { forgotPasswordSchema } = require("./schema");
+const { forgotPasswordSchema } = require('./schema');
 
 // Setup transporter Nodemailer
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -21,20 +21,20 @@ const forgotPassword = async (req, res) => {
   const { error } = forgotPasswordSchema.validate({ email });
   if (error) {
     return res.status(400).json({
-      status: "fail",
+      status: 'fail',
       message: error.details[0].message,
     });
   }
 
   try {
     // Cari user berdasarkan email
-    const userQuery = "SELECT id, full_name FROM users WHERE email = $1";
+    const userQuery = 'SELECT id, full_name FROM users WHERE email = $1';
     const userResult = await pool.query(userQuery, [email]);
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({
-        status: "fail",
-        message: "Email tidak ditemukan",
+        status: 'fail',
+        message: 'Email tidak ditemukan',
       });
     }
 
@@ -60,11 +60,11 @@ const forgotPassword = async (req, res) => {
     // Kirim email dengan kode reset
     const mailOptions = {
       from: {
-        name: "Sistem Monev",
+        name: 'Sistem Monev',
         address: process.env.EMAIL_USER,
       },
       to: email,
-      subject: "Kode Reset Password",
+      subject: 'Kode Reset Password',
       text: `Halo ${fullName},
 
 Berikut adalah kode verifikasi untuk mereset password Anda:
@@ -79,25 +79,25 @@ Terima kasih,
 Tim Sistem Monev`,
     };
 
-    transporter.sendMail(mailOptions, (err, info) => {
+    transporter.sendMail(mailOptions, (err, _info) => {
       if (err) {
-        console.error("Error mengirim email:", err);
+        console.error('Error mengirim email:', err);
         return res.status(500).json({
-          status: "error",
-          message: "Gagal mengirim email",
+          status: 'error',
+          message: 'Gagal mengirim email',
         });
       }
 
       return res.status(200).json({
-        status: "success",
-        message: "Kode reset password berhasil dikirim melalui email",
+        status: 'success',
+        message: 'Kode reset password berhasil dikirim melalui email',
       });
     });
   } catch (err) {
-    console.error("Error saat memproses forgot password:", err);
+    console.error('Error saat memproses forgot password:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   }
 };

@@ -1,9 +1,9 @@
-const pool = require("../config/db");
-const nodemailer = require("nodemailer");
+const pool = require('../config/db');
+const nodemailer = require('nodemailer');
 
 // Konfigurasi nodemailer
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -17,13 +17,13 @@ const verifyAccount = async (req, res) => {
 
   try {
     // Ambil data pengguna
-    const checkQuery = "SELECT * FROM users WHERE email = $1";
+    const checkQuery = 'SELECT * FROM users WHERE email = $1';
     const checkResult = await client.query(checkQuery, [email]);
 
     if (checkResult.rows.length === 0) {
       return res.status(404).json({
-        status: "fail",
-        message: "Pengguna tidak ditemukan",
+        status: 'fail',
+        message: 'Pengguna tidak ditemukan',
       });
     }
 
@@ -33,20 +33,20 @@ const verifyAccount = async (req, res) => {
     const newVerificationStatus = !user.is_verified;
 
     // Update status di database
-    const updateQuery = "UPDATE users SET is_verified = $1 WHERE email = $2";
+    const updateQuery = 'UPDATE users SET is_verified = $1 WHERE email = $2';
     await client.query(updateQuery, [newVerificationStatus, email]);
     client.release();
 
     // Kirim notifikasi email
     const mailOptions = {
       from: {
-        name: "Sistem Monev",
+        name: 'Sistem Monev',
         address: process.env.EMAIL_USER,
       },
       to: email,
       subject: newVerificationStatus
-        ? "Akun Anda Telah Diverifikasi"
-        : "Verifikasi Akun Dicabut",
+        ? 'Akun Anda Telah Diverifikasi'
+        : 'Verifikasi Akun Dicabut',
       text: `Halo ${user.full_name},
 
 ${
@@ -61,28 +61,28 @@ Terima kasih,
 Tim Sistem Monev`,
     };
 
-    transporter.sendMail(mailOptions, (error) => {
+    transporter.sendMail(mailOptions, error => {
       if (error) {
-        console.error("Error sending verification email:", error);
+        console.error('Error sending verification email:', error);
         return res.status(500).json({
-          status: "error",
-          message: "Gagal mengirim email verifikasi",
+          status: 'error',
+          message: 'Gagal mengirim email verifikasi',
         });
       }
     });
 
     return res.status(200).json({
-      status: "success",
+      status: 'success',
       message: `Akun pengguna berhasil ${
-        newVerificationStatus ? "diverifikasi" : "dinonaktifkan"
+        newVerificationStatus ? 'diverifikasi' : 'dinonaktifkan'
       }, dan email telah dikirim.`,
     });
   } catch (err) {
     client.release();
-    console.error("Error verifying user:", err);
+    console.error('Error verifying user:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   }
 };

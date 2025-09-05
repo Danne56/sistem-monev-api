@@ -1,0 +1,56 @@
+services:
+  api:
+    build:
+      context: .
+      target: ${NODE_ENV}
+    container_name: monev-api
+    env_file:
+      - ./.env
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    ports:
+      - 5000:5000
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /node/app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    volumes:
+      #   - .:/node/app
+      - node_modules:/node/app/node_modules
+
+#  postgres:
+#    image: postgres:alpine
+#    restart: always
+#    container_name: url-shortener-db
+#    env_file:
+#     - ./.env
+#    environment:
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_DB: ${POSTGRES_DB}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#    healthcheck:
+#      test: [CMD-SHELL, "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    ports:
+#      - 5432:5432
+#    volumes:
+#      - pg-data:/var/lib/postgresql/data
+#    networks:
+#      - url-shortener
+
+volumes:
+  #  pg-data:
+  node_modules:
+
+networks:
+  default:
+    external: true
+    name: docker-bridge

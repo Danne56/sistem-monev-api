@@ -1,8 +1,8 @@
-require("dotenv").config();
-const pool = require("../config/db");
-const { registerSchema } = require("./schema");
-const bcrypt = require("bcrypt");
-const { nanoid } = require("nanoid");
+require('dotenv').config();
+const pool = require('../config/db');
+const { registerSchema } = require('./schema');
+const bcrypt = require('bcrypt');
+const { nanoid } = require('nanoid');
 
 const registerUser = async (req, res) => {
   const { fullName, email, password, role } = req.body;
@@ -17,7 +17,7 @@ const registerUser = async (req, res) => {
 
   if (error) {
     return res.status(400).json({
-      status: "fail",
+      status: 'fail',
       message: error.details[0].message,
     });
   }
@@ -25,7 +25,7 @@ const registerUser = async (req, res) => {
   const client = await pool.connect();
 
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
 
     // Cek apakah email sudah terdaftar
     const checkUserQuery = `
@@ -34,8 +34,8 @@ const registerUser = async (req, res) => {
 
     if (checkResult.rows.length > 0) {
       return res.status(409).json({
-        status: "fail",
-        message: "Email sudah digunakan",
+        status: 'fail',
+        message: 'Email sudah digunakan',
       });
     }
 
@@ -56,24 +56,24 @@ const registerUser = async (req, res) => {
       fullName,
       email,
       hashedPassword,
-      role || "pengelola", // role default jika tidak diberikan
+      role || 'pengelola', // role default jika tidak diberikan
     ]);
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
 
     return res.status(201).json({
-      status: "success",
-      message: "Akun berhasil dibuat. Menunggu verifikasi dari admin.",
+      status: 'success',
+      message: 'Akun berhasil dibuat. Menunggu verifikasi dari admin.',
       data: {
         userId,
       },
     });
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error registering user:", err);
+    await client.query('ROLLBACK');
+    console.error('Error registering user:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   } finally {
     client.release();
@@ -82,7 +82,7 @@ const registerUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   const client = await pool.connect();
-  const includeDesa = req.query.includeDesa === "true";
+  const includeDesa = req.query.includeDesa === 'true';
 
   try {
     let query;
@@ -104,14 +104,14 @@ const getAllUsers = async (req, res) => {
     const result = await client.query(query);
 
     return res.status(200).json({
-      status: "success",
+      status: 'success',
       data: result.rows,
     });
   } catch (err) {
-    console.error("Error fetching users:", err);
+    console.error('Error fetching users:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   } finally {
     client.release();
