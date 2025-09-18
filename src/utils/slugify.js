@@ -10,4 +10,4 @@ const slugify = text =>
     .replace(/^-+/, '') // Hapus - di awal
     .replace(/-+$/, ''); // Hapus - di akhir
 
-module.exports = slugify;
+export default slugify;

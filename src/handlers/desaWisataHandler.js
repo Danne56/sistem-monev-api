@@ -1,7 +1,7 @@
-const { nanoid } = require('nanoid');
-const pool = require('../config/db');
-const { desaWisataSchema } = require('../handlers/schema');
-const slugify = require('../utils/slugify');
+import { nanoid } from 'nanoid';
+import pool from '../config/db.js';
+import { desaWisataSchema } from '../handlers/schema.js';
+import slugify from '../utils/slugify.js';
 
 // Menambahkan desa wisata
 const addDesaWisata = async (req, res) => {
@@ -364,11 +364,11 @@ const getAllDesaWisataWithDetails = async (req, res) => {
     const byJenis = req.query.byJenis === 'true';
 
     let query = `
-      SELECT 
+      SELECT
         d.kd_desa,
         COALESCE(dd.gambar_cover, '') AS gambar_cover,
         COALESCE(d.provinsi, '') AS provinsi,
-        COALESCE(d.kabupaten, '') AS kabupaten, 
+        COALESCE(d.kabupaten, '') AS kabupaten,
         COALESCE(d.nama_popular, '') AS nama_popular,
         d.slug,
         dd.jenis_desa
@@ -428,13 +428,13 @@ const getDesaWisataBySlug = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addDesaWisata,
-  getAllDesaWisata,
-  getDesaWisataById,
-  updateDesaWisata,
   deleteDesaWisata,
-  getDesaByUserEmail,
+  getAllDesaWisata,
   getAllDesaWisataWithDetails,
+  getDesaByUserEmail,
+  getDesaWisataById,
   getDesaWisataBySlug,
+  updateDesaWisata,
 };

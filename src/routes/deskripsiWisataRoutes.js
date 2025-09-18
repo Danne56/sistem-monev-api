@@ -1,22 +1,19 @@
-const express = require('express');
-const {
-  authenticateToken,
-  checkRole,
-} = require('../middleware/authMiddleware');
-const {
+import express from 'express';
+import {
   addDeskripsiWisata,
+  deleteDeskripsiWisata,
   getAllDeskripsiWisata,
   getDeskripsiWisataByKdDesa,
-  updateDeskripsiWisata,
-  deleteDeskripsiWisata,
-  upload,
+  getRandomAtraksiWisata,
   handleUploadErrors,
   patchDeskripsiWisata,
   patchRemoveItemDeskripsiWisata,
+  updateDeskripsiWisata,
+  upload,
   uploadImageToGCS,
-  getRandomAtraksiWisata,
-} = require('../handlers/deskripsiWisataHandler');
-const { checkOwnership } = require('../middleware/checkOwnership');
+} from '../handlers/deskripsiWisataHandler.js';
+import { authenticateToken, checkRole } from '../middleware/authMiddleware.js';
+import { checkOwnership } from '../middleware/checkOwnership.js';
 const router = express.Router();
 
 // Define the fields and their limits for file uploads
@@ -103,4 +100,4 @@ router.post('/upload/gambar', upload.single('file'), async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

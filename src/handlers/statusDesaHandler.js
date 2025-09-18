@@ -1,9 +1,6 @@
-const { nanoid } = require('nanoid');
-const pool = require('../config/db');
-const {
-  updateStatusDesaSchema,
-  createStatusDesaSchema,
-} = require('../handlers/schema');
+import { nanoid } from 'nanoid';
+import pool from '../config/db.js';
+import { createStatusDesaSchema, updateStatusDesaSchema } from './schema.js';
 
 // Fungsi untuk menambahkan status desa
 const addStatusDesa = async (req, res) => {
@@ -225,10 +222,10 @@ const deleteStatusDesa = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addStatusDesa,
+  deleteStatusDesa,
   getAllStatusDesa,
   getStatusDesaByKdStatus,
   updateStatusDesa,
-  deleteStatusDesa,
 };

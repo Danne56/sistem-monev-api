@@ -1,16 +1,13 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   addPermintaan,
+  deletePermintaan,
   getAllPermintaan,
   getPermintaanById,
   updatePermintaan,
-  deletePermintaan,
-} = require('../handlers/permintaanHandler');
-const {
-  authenticateToken,
-  checkRole,
-} = require('../middleware/authMiddleware');
+} from '../handlers/permintaanHandler.js';
+import { authenticateToken, checkRole } from '../middleware/authMiddleware.js';
+const router = express.Router();
 
 // Create
 router.post(
@@ -42,4 +39,4 @@ router.delete(
   deletePermintaan
 );
 
-module.exports = router;
+export default router;

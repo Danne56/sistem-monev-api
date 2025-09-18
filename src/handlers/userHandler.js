@@ -1,8 +1,10 @@
-require('dotenv').config();
-const pool = require('../config/db');
-const { registerSchema } = require('./schema');
-const bcrypt = require('bcrypt');
-const { nanoid } = require('nanoid');
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import { nanoid } from 'nanoid';
+import pool from '../config/db.js';
+import { registerSchema } from './schema.js';
+
+dotenv.config();
 
 const registerUser = async (req, res) => {
   const { fullName, email, password, role } = req.body;
@@ -118,4 +120,4 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, getAllUsers };
+export { getAllUsers, registerUser };

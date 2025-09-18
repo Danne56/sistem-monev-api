@@ -1,8 +1,9 @@
-const pool = require('../config/db');
-const { Storage } = require('@google-cloud/storage');
-const multer = require('multer');
-const Joi = require('joi');
-require('dotenv').config();
+import dotenv from 'dotenv';
+import Joi from 'joi';
+import multer from 'multer';
+import pool from '../config/db.js';
+import { bucket } from '../utils/gcsConfig.js';
+dotenv.config();
 
 // Setup GCP Storage
 const storage = new Storage({
@@ -600,11 +601,11 @@ const deleteDeskripsiDesa = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addDeskripsiDesa,
-  getDeskripsiDesaByKdDesa,
-  updateDeskripsiDesa,
   deleteDeskripsiDesa,
-  uploadFields,
+  getDeskripsiDesaByKdDesa,
   handleUploadErrors,
+  updateDeskripsiDesa,
+  uploadFields,
 };

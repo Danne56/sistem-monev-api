@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 const checkTokenBlacklist = async (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
@@ -32,4 +32,4 @@ const checkTokenBlacklist = async (req, res, next) => {
   }
 };
 
-module.exports = { checkTokenBlacklist };
+export { checkTokenBlacklist };

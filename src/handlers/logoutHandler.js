@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 // Fungsi untuk logout
 const logoutUser = async (req, res) => {
@@ -29,4 +29,4 @@ const logoutUser = async (req, res) => {
   }
 };
 
-module.exports = { logoutUser };
+export { logoutUser };

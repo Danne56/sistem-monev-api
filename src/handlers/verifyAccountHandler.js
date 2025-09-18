@@ -1,5 +1,5 @@
-const pool = require('../config/db');
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
+import pool from '../config/db.js';
 
 // Konfigurasi nodemailer
 const transporter = nodemailer.createTransport({
@@ -87,4 +87,4 @@ Tim Sistem Monev`,
   }
 };
 
-module.exports = { verifyAccount };
+export { verifyAccount };

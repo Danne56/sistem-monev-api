@@ -1,8 +1,10 @@
-require('dotenv').config();
-const pool = require('../config/db');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { loginSchema } = require('./schema');
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import pool from '../config/db.js';
+import { loginSchema } from './schema.js';
+
+dotenv.config();
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -85,4 +87,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser };
+export { loginUser };

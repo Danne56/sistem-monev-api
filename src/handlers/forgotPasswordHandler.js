@@ -1,9 +1,9 @@
-const pool = require('../config/db');
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import pool from '../config/db.js';
 
 // Import schema validasi
-const { forgotPasswordSchema } = require('./schema');
+import { forgotPasswordSchema } from './schema.js';
 
 // Setup transporter Nodemailer
 const transporter = nodemailer.createTransport({
@@ -102,4 +102,4 @@ Tim Sistem Monev`,
   }
 };
 
-module.exports = { forgotPassword };
+export { forgotPassword };

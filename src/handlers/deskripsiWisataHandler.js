@@ -1,8 +1,9 @@
-const pool = require('../config/db');
-const { deskripsiWisataSchema } = require('../handlers/schema');
-const { Storage } = require('@google-cloud/storage');
-const multer = require('multer');
-require('dotenv').config();
+import dotenv from 'dotenv';
+import multer from 'multer';
+import pool from '../config/db.js';
+import { bucket } from '../utils/gcsConfig.js';
+import { deskripsiWisataSchema } from './schema.js';
+dotenv.config();
 
 // Setup GCP Storage
 const storage = new Storage({
@@ -878,18 +879,18 @@ const patchRemoveItemDeskripsiWisata = async (req, res) => {
 };
 
 // Export yang diperbarui
-module.exports = {
+export {
   addDeskripsiWisata,
+  deleteDeskripsiWisata,
+  deleteImageFromGCS,
   getAllDeskripsiWisata,
   getDeskripsiWisataByKdDesa,
-  updateDeskripsiWisata,
-  deleteDeskripsiWisata,
-  upload,
+  getRandomAtraksiWisata,
   handleUploadErrors,
   patchDeskripsiWisata,
   patchRemoveItemDeskripsiWisata,
+  updateDeskripsiWisata,
+  upload,
   uploadGambar,
   uploadImageToGCS,
-  deleteImageFromGCS,
-  getRandomAtraksiWisata,
 };
