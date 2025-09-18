@@ -1,14 +1,8 @@
 const pool = require('../config/db');
 const { deskripsiWisataSchema } = require('../handlers/schema');
-const { Storage } = require('@google-cloud/storage');
+const { bucket } = require('../utils/gcsConfig');
 const multer = require('multer');
 require('dotenv').config();
-
-// Setup GCP Storage
-const storage = new Storage({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-});
-const bucket = storage.bucket(process.env.BUCKET_NAME);
 
 // File size and type validation for Multer
 const fileFilter = (req, file, cb) => {
