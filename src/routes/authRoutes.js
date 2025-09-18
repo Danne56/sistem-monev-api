@@ -1,16 +1,18 @@
-const express = require('express');
-const { registerUser } = require('../handlers/userHandler');
-const { verifyAccount } = require('../handlers/verifyAccountHandler');
-const { loginUser } = require('../handlers/loginHandler');
-const { authenticateToken } = require('../middleware/authMiddleware');
-const { forgotPassword } = require('../handlers/forgotPasswordHandler');
-const { resetPassword } = require('../handlers/resetPasswordHandler');
-const { verifyResetCode } = require('../handlers/verifyResetCodeHandler');
-const { logoutUser } = require('../handlers/logoutHandler');
-const { checkTokenBlacklist } = require('../middleware/checkTokenBlacklist');
-const { checkRole } = require('../middleware/authMiddleware');
-const { verifyToken } = require('../middleware/authMiddleware');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import { forgotPassword } from '../handlers/forgotPasswordHandler.js';
+import { loginUser } from '../handlers/loginHandler.js';
+import { logoutUser } from '../handlers/logoutHandler.js';
+import { resetPassword } from '../handlers/resetPasswordHandler.js';
+import { registerUser } from '../handlers/userHandler.js';
+import { verifyAccount } from '../handlers/verifyAccountHandler.js';
+import { verifyResetCode } from '../handlers/verifyResetCodeHandler.js';
+import {
+  authenticateToken,
+  checkRole,
+  verifyToken,
+} from '../middleware/authMiddleware.js';
+import { checkTokenBlacklist } from '../middleware/checkTokenBlacklist.js';
 const router = express.Router();
 
 router.post('/register', registerUser);
@@ -52,4 +54,4 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-module.exports = router;
+export default router;

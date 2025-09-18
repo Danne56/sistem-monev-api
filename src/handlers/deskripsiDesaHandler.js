@@ -1,8 +1,9 @@
-const pool = require('../config/db');
-const { bucket } = require('../utils/gcsConfig');
-const multer = require('multer');
-const Joi = require('joi');
-require('dotenv').config();
+import dotenv from 'dotenv';
+import Joi from 'joi';
+import multer from 'multer';
+import pool from '../config/db.js';
+import { bucket } from '../utils/gcsConfig.js';
+dotenv.config();
 
 // Validation Schema
 const deskripsiDesaSchema = Joi.object({
@@ -594,11 +595,11 @@ const deleteDeskripsiDesa = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addDeskripsiDesa,
-  getDeskripsiDesaByKdDesa,
-  updateDeskripsiDesa,
   deleteDeskripsiDesa,
-  uploadFields,
+  getDeskripsiDesaByKdDesa,
   handleUploadErrors,
+  updateDeskripsiDesa,
+  uploadFields,
 };

@@ -1,15 +1,12 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   addStatusDesa,
+  deleteStatusDesa,
   getAllStatusDesa,
   getStatusDesaByKdStatus,
   updateStatusDesa,
-  deleteStatusDesa,
-} = require('../handlers/statusDesaHandler');
-const {
-  authenticateToken,
-  checkRole,
-} = require('../middleware/authMiddleware');
+} from '../handlers/statusDesaHandler.js';
+import { authenticateToken, checkRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -47,4 +44,4 @@ router.delete(
   deleteStatusDesa
 );
 
-module.exports = router;
+export default router;

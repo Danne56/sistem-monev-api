@@ -1,16 +1,17 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const authRoutes = require('./src/routes/authRoutes');
-const desaWisataRoutes = require('./src/routes/desaWisataRoutes');
-const deskripsiWisataRoutes = require('./src/routes/deskripsiWisataRoutes');
-const statusDesaRoutes = require('./src/routes/statusDesaRoutes');
-const permintaanRoutes = require('./src/routes/permintaanRoutes');
-const skorDesaRoutes = require('./src/routes/skorDesaRoutes');
-const deskripsiDesaRoutes = require('./src/routes/deskripsiDesaRoutes');
-const userRoutes = require('./src/routes/userRoutes');
-require('dotenv').config();
-const helmet = require('helmet');
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import helmet from 'helmet';
+import authRoutes from './src/routes/authRoutes.js';
+import desaWisataRoutes from './src/routes/desaWisataRoutes.js';
+import deskripsiDesaRoutes from './src/routes/deskripsiDesaRoutes.js';
+import deskripsiWisataRoutes from './src/routes/deskripsiWisataRoutes.js';
+import permintaanRoutes from './src/routes/permintaanRoutes.js';
+import skorDesaRoutes from './src/routes/skorDesaRoutes.js';
+import statusDesaRoutes from './src/routes/statusDesaRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());

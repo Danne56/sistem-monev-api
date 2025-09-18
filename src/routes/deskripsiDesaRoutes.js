@@ -1,17 +1,14 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   addDeskripsiDesa,
-  getDeskripsiDesaByKdDesa,
-  updateDeskripsiDesa,
   deleteDeskripsiDesa,
-  uploadFields,
+  getDeskripsiDesaByKdDesa,
   handleUploadErrors,
-} = require('../handlers/deskripsiDesaHandler');
-const {
-  authenticateToken,
-  checkRole,
-} = require('../middleware/authMiddleware');
-const { checkOwnership } = require('../middleware/checkOwnership');
+  updateDeskripsiDesa,
+  uploadFields,
+} from '../handlers/deskripsiDesaHandler.js';
+import { authenticateToken, checkRole } from '../middleware/authMiddleware.js';
+import { checkOwnership } from '../middleware/checkOwnership.js';
 
 const router = express.Router();
 
@@ -49,4 +46,4 @@ router.delete(
   deleteDeskripsiDesa
 );
 
-module.exports = router;
+export default router;

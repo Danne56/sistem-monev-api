@@ -1,4 +1,4 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
 /* ==============================
    Auth Schemas
@@ -226,16 +226,16 @@ const resetPasswordSchema = Joi.object({
   confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required(),
 });
 
-module.exports = {
-  registerSchema,
-  loginSchema,
-  kategoriSchema,
+export {
+  createPermintaanSchema,
+  createStatusDesaSchema,
   desaWisataSchema,
   deskripsiWisataSchema,
-  createPermintaanSchema,
-  updatePermintaanSchema,
   forgotPasswordSchema,
+  kategoriSchema,
+  loginSchema,
+  registerSchema,
   resetPasswordSchema,
-  createStatusDesaSchema,
+  updatePermintaanSchema,
   updateStatusDesaSchema,
 };

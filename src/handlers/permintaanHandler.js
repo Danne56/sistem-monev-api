@@ -1,9 +1,6 @@
-const { nanoid } = require('nanoid');
-const pool = require('../config/db');
-const {
-  updatePermintaanSchema,
-  createPermintaanSchema,
-} = require('../handlers/schema');
+import { nanoid } from 'nanoid';
+import pool from '../config/db.js';
+import { createPermintaanSchema, updatePermintaanSchema } from './schema.js';
 
 // Menambahkan permintaan
 const addPermintaan = async (req, res) => {
@@ -242,10 +239,10 @@ const deletePermintaan = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addPermintaan,
+  deletePermintaan,
   getAllPermintaan,
   getPermintaanById,
   updatePermintaan,
-  deletePermintaan,
 };

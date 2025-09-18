@@ -1,5 +1,7 @@
-const { Storage } = require('@google-cloud/storage');
-require('dotenv').config();
+import { Storage } from '@google-cloud/storage';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Helper to decode base64 credentials
 function getCredentialsFromBase64() {
@@ -58,4 +60,4 @@ try {
   console.log('Server will continue without GCS functionality');
 }
 
-module.exports = { storage, bucket, initializeGCS };
+export { bucket, initializeGCS, storage };

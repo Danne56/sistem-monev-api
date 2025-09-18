@@ -1,6 +1,6 @@
-const pool = require('../config/db');
-const bcrypt = require('bcrypt');
-const { resetPasswordSchema } = require('./schema');
+import bcrypt from 'bcrypt';
+import pool from '../config/db.js';
+import { resetPasswordSchema } from './schema.js';
 
 const resetPassword = async (req, res) => {
   const { email, resetCode, newPassword, confirmPassword } = req.body;
@@ -75,4 +75,4 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { resetPassword };
+export { resetPassword };

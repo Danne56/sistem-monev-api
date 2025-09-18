@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 const getKategoriDesa = rata_rata => {
   if (rata_rata > 90) {
@@ -216,7 +216,7 @@ const getAllSkorDesaWisata = async (req, res) => {
     // Gunakan LEFT JOIN agar semua desa ditampilkan,
     // termasuk yang belum memiliki skor
     const query = `
-            SELECT 
+            SELECT
                 d.kd_desa,
                 d.nama_desa,
                 d.kategori_desa,
@@ -226,10 +226,10 @@ const getAllSkorDesaWisata = async (req, res) => {
                 s.keramahan_difabel,
                 s.fasilitas_tempat_wisata,
                 s.produk_tempat_wisata,
-                CASE 
-                    WHEN s.kd_desa IS NOT NULL THEN 
-                        ROUND((s.partisipasi_masyarakat + s.keragaman_paket_wisata + 
-                               s.akses_tempat_wisata + s.keramahan_difabel + 
+                CASE
+                    WHEN s.kd_desa IS NOT NULL THEN
+                        ROUND((s.partisipasi_masyarakat + s.keragaman_paket_wisata +
+                               s.akses_tempat_wisata + s.keramahan_difabel +
                                s.fasilitas_tempat_wisata + s.produk_tempat_wisata) / 6.0)
                     ELSE 0
                 END as rata_rata
@@ -295,9 +295,9 @@ const getSkorDesaWisataByID = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   addSkorDesaWisata,
-  updateSkorDesaWisata,
   getAllSkorDesaWisata,
   getSkorDesaWisataByID,
+  updateSkorDesaWisata,
 };

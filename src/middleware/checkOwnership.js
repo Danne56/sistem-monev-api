@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+import pool from '../config/db.js';
 
 const checkOwnership = async (req, res, next) => {
   // 🔍 DEBUG: Log semua kemungkinan lokasi kd_desa
@@ -89,4 +89,4 @@ const checkOwnership = async (req, res, next) => {
   }
 };
 
-module.exports = { checkOwnership };
+export { checkOwnership };

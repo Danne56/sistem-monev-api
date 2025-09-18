@@ -1,15 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const {
-  authenticateToken,
-  checkRole,
-} = require('../middleware/authMiddleware');
-const {
+import express from 'express';
+import {
   addSkorDesaWisata,
-  updateSkorDesaWisata,
   getAllSkorDesaWisata,
   getSkorDesaWisataByID,
-} = require('../handlers/skorDesaHandler');
+  updateSkorDesaWisata,
+} from '../handlers/skorDesaHandler.js';
+import { authenticateToken, checkRole } from '../middleware/authMiddleware.js';
+const router = express.Router();
 
 router.post('/skor', authenticateToken, checkRole('dinas'), addSkorDesaWisata);
 router.put(
@@ -21,4 +18,4 @@ router.put(
 router.get('/skor', getAllSkorDesaWisata);
 router.get('/skor/:kd_desa', getSkorDesaWisataByID);
 
-module.exports = router;
+export default router;

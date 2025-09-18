@@ -1,8 +1,8 @@
-const express = require('express');
-const { getAllUsers } = require('../handlers/userHandler');
+import express from 'express';
+import { getAllUsers } from '../handlers/userHandler.js';
 
 const router = express.Router();
 
 router.get('/users', getAllUsers);
 
-module.exports = router;
+export default router;

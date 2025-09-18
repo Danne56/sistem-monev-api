@@ -1,8 +1,9 @@
-const pool = require('../config/db');
-const { deskripsiWisataSchema } = require('../handlers/schema');
-const { bucket } = require('../utils/gcsConfig');
-const multer = require('multer');
-require('dotenv').config();
+import dotenv from 'dotenv';
+import multer from 'multer';
+import pool from '../config/db.js';
+import { bucket } from '../utils/gcsConfig.js';
+import { deskripsiWisataSchema } from './schema.js';
+dotenv.config();
 
 // File size and type validation for Multer
 const fileFilter = (req, file, cb) => {
@@ -872,18 +873,18 @@ const patchRemoveItemDeskripsiWisata = async (req, res) => {
 };
 
 // Export yang diperbarui
-module.exports = {
+export {
   addDeskripsiWisata,
+  deleteDeskripsiWisata,
+  deleteImageFromGCS,
   getAllDeskripsiWisata,
   getDeskripsiWisataByKdDesa,
-  updateDeskripsiWisata,
-  deleteDeskripsiWisata,
-  upload,
+  getRandomAtraksiWisata,
   handleUploadErrors,
   patchDeskripsiWisata,
   patchRemoveItemDeskripsiWisata,
+  updateDeskripsiWisata,
+  upload,
   uploadGambar,
   uploadImageToGCS,
-  deleteImageFromGCS,
-  getRandomAtraksiWisata,
 };

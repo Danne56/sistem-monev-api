@@ -1,18 +1,15 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   addDesaWisata,
-  getAllDesaWisata,
-  getDesaWisataById,
-  updateDesaWisata,
   deleteDesaWisata,
-  getDesaByUserEmail,
+  getAllDesaWisata,
   getAllDesaWisataWithDetails,
+  getDesaByUserEmail,
+  getDesaWisataById,
   getDesaWisataBySlug,
-} = require('../handlers/desaWisataHandler');
-const {
-  authenticateToken,
-  checkRole,
-} = require('../middleware/authMiddleware');
+  updateDesaWisata,
+} from '../handlers/desaWisataHandler.js';
+import { authenticateToken, checkRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -39,4 +36,4 @@ router.get('/desa-wisata/email/:email', getDesaByUserEmail);
 
 router.get('/desa-wisata/slug/:slug', getDesaWisataBySlug);
 
-module.exports = router;
+export default router;
