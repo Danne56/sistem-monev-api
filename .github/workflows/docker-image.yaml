@@ -33,7 +33,7 @@ jobs:
           target: production
           push: true
           tags: |
-            ghcr.io/danne56/invoice-bot-api:${{ github.sha }}
-            ghcr.io/danne56/invoice-bot-api:latest
+            ghcr.io/danne56/sistem-monev-api:${{ github.sha }}
+            ghcr.io/danne56/sistem-monev-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
