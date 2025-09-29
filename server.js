@@ -78,7 +78,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, _next) => {
   const errorResponse = {
     status: 'error',
     message:
