@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const {
   addPermintaan,
@@ -6,29 +6,29 @@ const {
   getPermintaanById,
   updatePermintaan,
   deletePermintaan,
-} = require("../handlers/permintaanHandler");
+} = require('../handlers/permintaanHandler');
 const {
   authenticateToken,
   checkRole,
-} = require("../middleware/authMiddleware");
+} = require('../middleware/authMiddleware');
 
 // Create
 router.post(
-  "/permintaan",
+  '/permintaan',
   authenticateToken,
-  checkRole("pengelola"),
+  checkRole('pengelola'),
   addPermintaan
 );
 
 // Read All
-router.get("/permintaan", getAllPermintaan);
+router.get('/permintaan', getAllPermintaan);
 
 // Read by ID
-router.get("/permintaan/:kd_permintaan", getPermintaanById);
+router.get('/permintaan/:kd_permintaan', getPermintaanById);
 
 // Update
 router.put(
-  "/permintaan/:kd_permintaan",
+  '/permintaan/:kd_permintaan',
   // authenticateToken,
   // checkRole("admin"),
   updatePermintaan
@@ -36,7 +36,7 @@ router.put(
 
 // Delete
 router.delete(
-  "/permintaan/:kd_permintaan",
+  '/permintaan/:kd_permintaan',
   // authenticateToken,
   // checkRole("admin"),
   deletePermintaan

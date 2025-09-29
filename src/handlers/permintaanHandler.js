@@ -1,9 +1,9 @@
-const { nanoid } = require("nanoid");
-const pool = require("../config/db");
+const { nanoid } = require('nanoid');
+const pool = require('../config/db');
 const {
   updatePermintaanSchema,
   createPermintaanSchema,
-} = require("../handlers/schema");
+} = require('../handlers/schema');
 
 // Menambahkan permintaan
 const addPermintaan = async (req, res) => {
@@ -17,37 +17,37 @@ const addPermintaan = async (req, res) => {
   });
   if (error) {
     return res.status(400).json({
-      status: "fail",
+      status: 'fail',
       message: error.details[0].message,
     });
   }
 
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
 
     // Generate kode permintaan otomatis
     const kd_permintaan = `REQ-${nanoid(10)}`;
 
     // Cek apakah email pengguna valid
-    const checkEmailQuery = "SELECT 1 FROM users WHERE email = $1";
+    const checkEmailQuery = 'SELECT 1 FROM users WHERE email = $1';
     const checkEmailResult = await client.query(checkEmailQuery, [email]);
     if (checkEmailResult.rows.length === 0) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       return res.status(400).json({
-        status: "fail",
-        message: "Email tidak terdaftar",
+        status: 'fail',
+        message: 'Email tidak terdaftar',
       });
     }
 
     // Cek apakah kode desa wisata valid
-    const checkDesaQuery = "SELECT 1 FROM desa_wisata WHERE kd_desa = $1";
+    const checkDesaQuery = 'SELECT 1 FROM desa_wisata WHERE kd_desa = $1';
     const checkDesaResult = await client.query(checkDesaQuery, [kd_desa]);
     if (checkDesaResult.rows.length === 0) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       return res.status(400).json({
-        status: "fail",
-        message: "Kode desa wisata tidak ditemukan",
+        status: 'fail',
+        message: 'Kode desa wisata tidak ditemukan',
       });
     }
 
@@ -63,11 +63,11 @@ const addPermintaan = async (req, res) => {
       status_permintaan,
     ]);
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
 
     return res.status(201).json({
-      status: "success",
-      message: "Permintaan berhasil ditambahkan",
+      status: 'success',
+      message: 'Permintaan berhasil ditambahkan',
       data: {
         kd_permintaan,
         email,
@@ -76,11 +76,11 @@ const addPermintaan = async (req, res) => {
       },
     });
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error adding permintaan:", err);
+    await client.query('ROLLBACK');
+    console.error('Error adding permintaan:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   } finally {
     client.release();
@@ -99,14 +99,14 @@ const getAllPermintaan = async (req, res) => {
     const result = await pool.query(query);
 
     return res.status(200).json({
-      status: "success",
+      status: 'success',
       data: result.rows,
     });
   } catch (err) {
-    console.error("Error fetching permintaan:", err);
+    console.error('Error fetching permintaan:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   }
 };
@@ -126,20 +126,20 @@ const getPermintaanById = async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({
-        status: "fail",
-        message: "Permintaan tidak ditemukan",
+        status: 'fail',
+        message: 'Permintaan tidak ditemukan',
       });
     }
 
     return res.status(200).json({
-      status: "success",
+      status: 'success',
       data: result.rows[0],
     });
   } catch (err) {
-    console.error("Error fetching permintaan:", err);
+    console.error('Error fetching permintaan:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   }
 };
@@ -154,24 +154,24 @@ const updatePermintaan = async (req, res) => {
   });
   if (error) {
     return res.status(400).json({
-      status: "fail",
+      status: 'fail',
       message: error.details[0].message,
     });
   }
 
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
 
     // Cek apakah permintaan ada
-    const checkQuery = "SELECT 1 FROM permintaan WHERE kd_permintaan = $1";
+    const checkQuery = 'SELECT 1 FROM permintaan WHERE kd_permintaan = $1';
     const checkResult = await client.query(checkQuery, [kd_permintaan]);
 
     if (checkResult.rows.length === 0) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       return res.status(404).json({
-        status: "fail",
-        message: "Permintaan tidak ditemukan",
+        status: 'fail',
+        message: 'Permintaan tidak ditemukan',
       });
     }
 
@@ -183,18 +183,18 @@ const updatePermintaan = async (req, res) => {
       `;
     await client.query(updateQuery, [status_permintaan, kd_permintaan]);
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
 
     return res.status(200).json({
-      status: "success",
-      message: "Status permintaan berhasil diperbarui",
+      status: 'success',
+      message: 'Status permintaan berhasil diperbarui',
     });
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error updating permintaan:", err);
+    await client.query('ROLLBACK');
+    console.error('Error updating permintaan:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   } finally {
     client.release();
@@ -206,36 +206,36 @@ const deletePermintaan = async (req, res) => {
 
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
 
     // Cek apakah permintaan ada
-    const checkQuery = "SELECT 1 FROM permintaan WHERE kd_permintaan = $1";
+    const checkQuery = 'SELECT 1 FROM permintaan WHERE kd_permintaan = $1';
     const checkResult = await client.query(checkQuery, [kd_permintaan]);
 
     if (checkResult.rows.length === 0) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       return res.status(404).json({
-        status: "fail",
-        message: "Permintaan tidak ditemukan",
+        status: 'fail',
+        message: 'Permintaan tidak ditemukan',
       });
     }
 
     // Hapus data dari tabel permintaan
-    const deleteQuery = "DELETE FROM permintaan WHERE kd_permintaan = $1";
+    const deleteQuery = 'DELETE FROM permintaan WHERE kd_permintaan = $1';
     await client.query(deleteQuery, [kd_permintaan]);
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
 
     return res.status(200).json({
-      status: "success",
-      message: "Permintaan berhasil dihapus",
+      status: 'success',
+      message: 'Permintaan berhasil dihapus',
     });
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error deleting permintaan:", err);
+    await client.query('ROLLBACK');
+    console.error('Error deleting permintaan:', err);
     return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
+      status: 'error',
+      message: 'Internal server error',
     });
   } finally {
     client.release();
