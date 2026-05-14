@@ -1,9 +1,19 @@
 import dotenv from 'dotenv';
 import Joi from 'joi';
 import multer from 'multer';
+import type { NextFunction, Request, Response } from 'express';
 import pool from '../config/db.js';
 import { bucket } from '../utils/gcsConfig.js';
-dotenv.config();
+dotenv.config({ quiet: true });
+
+type DeskripsiDesaRequest = Request;
+
+const requireBucket = () => {
+  if (!bucket) {
+    throw new Error('GCS bucket is not initialized');
+  }
+  return bucket;
+};
 
 // Setup GCP Storage
 const storage = new Storage({
@@ -36,13 +46,13 @@ const deskripsiDesaSchema = Joi.object({
 });
 
 // File validation
-const fileFilter = (req, file, cb) => {
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   if (!file.mimetype.startsWith('image/')) {
-    return cb(new Error('Hanya file gambar yang diperbolehkan!'), false);
+    return cb(null, false);
   }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
   if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error('Format yang diperbolehkan: JPG, PNG, WebP'), false);
+    return cb(null, false);
   }
   cb(null, true);
 };
@@ -64,7 +74,12 @@ const uploadFields = upload.fields([
 ]);
 
 // Error handling middleware
-const handleUploadErrors = (err, req, res, next) => {
+const handleUploadErrors = (
+  err: unknown,
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
@@ -82,7 +97,7 @@ const handleUploadErrors = (err, req, res, next) => {
       status: 'fail',
       message: `Upload error: ${err.message}`,
     });
-  } else if (err) {
+  } else if (err instanceof Error) {
     return res.status(400).json({
       status: 'fail',
       message: err.message,
@@ -92,14 +107,15 @@ const handleUploadErrors = (err, req, res, next) => {
 };
 
 // Fungsi upload gambar ke GCS
-const uploadImageToGCS = async file => {
+const uploadImageToGCS = async (file: Express.Multer.File) => {
   try {
+    const gcsBucket = requireBucket();
     const timestamp = Date.now();
     const fileName = `desa/${timestamp}-${file.originalname.replace(
       /\s+/g,
       '-'
     )}`;
-    const blob = bucket.file(fileName);
+    const blob = gcsBucket.file(fileName);
 
     const blobStream = blob.createWriteStream({
       resumable: false,
@@ -110,14 +126,14 @@ const uploadImageToGCS = async file => {
       },
     });
 
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       blobStream.on('error', err => {
         console.error('Upload error:', err.message);
         reject(new Error('Upload gambar gagal'));
       });
 
       blobStream.on('finish', () => {
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        const publicUrl = `https://storage.googleapis.com/${gcsBucket.name}/${fileName}`;
         console.log('File berhasil diupload:', publicUrl);
         resolve(publicUrl);
       });
@@ -125,31 +141,34 @@ const uploadImageToGCS = async file => {
       blobStream.end(file.buffer);
     });
   } catch (error) {
-    console.error('Error in uploadImageToGCS:', error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error in uploadImageToGCS:', message);
     throw error;
   }
 };
 
 // Fungsi hapus gambar dari GCS
-const deleteImageFromGCS = async publicUrl => {
+const deleteImageFromGCS = async (publicUrl?: string | null) => {
   if (!publicUrl || typeof publicUrl !== 'string') return;
 
   try {
+    const gcsBucket = requireBucket();
     // Extract filename from URL
     const urlParts = publicUrl.split('/');
     const fileName = urlParts[urlParts.length - 1];
     const filePath = `desa/${fileName}`;
 
-    await bucket.file(filePath).delete();
+    await gcsBucket.file(filePath).delete();
     console.log(`File deleted from GCS: ${filePath}`);
   } catch (error) {
-    console.error(`Gagal menghapus file dari GCS: ${publicUrl}`, error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Gagal menghapus file dari GCS: ${publicUrl}`, message);
     // Don't throw error, just log it
   }
 };
 
 // Fungsi hapus multiple gambar dari GCS
-const deleteMultipleImagesFromGCS = async imageUrls => {
+const deleteMultipleImagesFromGCS = async (imageUrls: string[]) => {
   if (!Array.isArray(imageUrls) || imageUrls.length === 0) return;
 
   console.log(`Deleting ${imageUrls.length} images from GCS...`);
@@ -159,8 +178,9 @@ const deleteMultipleImagesFromGCS = async imageUrls => {
       await deleteImageFromGCS(url);
       return { url, success: true };
     } catch (error) {
-      console.error(`Failed to delete ${url}:`, error.message);
-      return { url, success: false, error: error.message };
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to delete ${url}:`, message);
+      return { url, success: false, error: message };
     }
   });
 
@@ -179,22 +199,23 @@ const deleteMultipleImagesFromGCS = async imageUrls => {
 };
 
 // Helper function untuk upload multiple files
-const uploadMultipleFiles = async files => {
+const uploadMultipleFiles = async (files: Express.Multer.File[]) => {
   if (!files || files.length === 0) return [];
 
   try {
     const uploadPromises = files.map(file => uploadImageToGCS(file));
     return await Promise.all(uploadPromises);
   } catch (error) {
-    console.error('Error uploading multiple files:', error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error uploading multiple files:', message);
     throw error;
   }
 };
 
 // CREATE - Tambah deskripsi desa
-const addDeskripsiDesa = async (req, res) => {
+const addDeskripsiDesa = async (req: DeskripsiDesaRequest, res: Response) => {
   let client;
-  const uploadedUrls = [];
+  const uploadedUrls: string[] = [];
   try {
     // 💡 DEBUG: Lihat semua input dari request
     console.log('🔹 Raw Request Body:', req.body);
@@ -269,15 +290,17 @@ const addDeskripsiDesa = async (req, res) => {
     }
 
     // Upload files
-    let gambar_cover = null;
-    let galeri_desa = [];
-    if (req.files) {
-      if (req.files.gambar_cover && req.files.gambar_cover[0]) {
-        gambar_cover = await uploadImageToGCS(req.files.gambar_cover[0]);
+    let gambar_cover: string | null = null;
+    let galeri_desa: string[] = [];
+    const uploadFiles =
+      req.files && !Array.isArray(req.files) ? req.files : undefined;
+    if (uploadFiles) {
+      if (uploadFiles.gambar_cover && uploadFiles.gambar_cover[0]) {
+        gambar_cover = await uploadImageToGCS(uploadFiles.gambar_cover[0]);
         uploadedUrls.push(gambar_cover);
       }
-      if (req.files.galeri_desa && req.files.galeri_desa.length > 0) {
-        galeri_desa = await uploadMultipleFiles(req.files.galeri_desa);
+      if (uploadFiles.galeri_desa && uploadFiles.galeri_desa.length > 0) {
+        galeri_desa = await uploadMultipleFiles(uploadFiles.galeri_desa);
         uploadedUrls.push(...galeri_desa);
       }
     }
@@ -315,7 +338,8 @@ const addDeskripsiDesa = async (req, res) => {
     }
 
     // 💡 DEBUG: Log error detail
-    console.error('🚨 Error adding deskripsi desa:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('🚨 Error adding deskripsi desa:', message);
     console.error('Full error object:', err);
 
     return res.status(500).json({
@@ -328,7 +352,10 @@ const addDeskripsiDesa = async (req, res) => {
 };
 
 //Get deskripsi desa by kd_desa
-const getDeskripsiDesaByKdDesa = async (req, res) => {
+const getDeskripsiDesaByKdDesa = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
@@ -372,10 +399,13 @@ const getDeskripsiDesaByKdDesa = async (req, res) => {
 };
 
 // UPDATE - Update deskripsi desa
-const updateDeskripsiDesa = async (req, res) => {
+const updateDeskripsiDesa = async (
+  req: DeskripsiDesaRequest & Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
-  const uploadedUrls = [];
+  const uploadedUrls: string[] = [];
 
   try {
     client = await pool.connect();
@@ -457,21 +487,23 @@ const updateDeskripsiDesa = async (req, res) => {
     } = value;
 
     // Handle cover image
-    let gambar_cover = currentData.gambar_cover;
-    if (remove_cover || req.files?.gambar_cover?.[0]) {
+    let gambar_cover: string | null = currentData.gambar_cover;
+    const updateFiles =
+      req.files && !Array.isArray(req.files) ? req.files : undefined;
+    if (remove_cover || updateFiles?.gambar_cover?.[0]) {
       if (currentData.gambar_cover)
         await deleteImageFromGCS(currentData.gambar_cover);
       if (remove_cover) {
         gambar_cover = null;
-      } else {
-        gambar_cover = await uploadImageToGCS(req.files.gambar_cover[0]);
+      } else if (updateFiles?.gambar_cover?.[0]) {
+        gambar_cover = await uploadImageToGCS(updateFiles.gambar_cover[0]);
         uploadedUrls.push(gambar_cover);
       }
     }
 
     // Handle gallery images
-    const currentGallery = currentData.galeri_desa || [];
-    const imagesToKeep = keep_gallery_images.filter(url =>
+    const currentGallery: string[] = currentData.galeri_desa || [];
+    const imagesToKeep = keep_gallery_images.filter((url: string) =>
       currentGallery.includes(url)
     );
     const imagesToDelete = currentGallery.filter(
@@ -481,8 +513,8 @@ const updateDeskripsiDesa = async (req, res) => {
       await deleteMultipleImagesFromGCS(imagesToDelete);
 
     const galeri_desa = [...imagesToKeep];
-    if (req.files?.galeri_desa?.length > 0) {
-      const newGalleryImages = await uploadMultipleFiles(req.files.galeri_desa);
+    if (updateFiles?.galeri_desa?.length) {
+      const newGalleryImages = await uploadMultipleFiles(updateFiles.galeri_desa);
       galeri_desa.push(...newGalleryImages);
       uploadedUrls.push(...newGalleryImages);
     }
@@ -540,7 +572,10 @@ const updateDeskripsiDesa = async (req, res) => {
 };
 
 // DELETE - Delete deskripsi desa
-const deleteDeskripsiDesa = async (req, res) => {
+const deleteDeskripsiDesa = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
@@ -565,7 +600,7 @@ const deleteDeskripsiDesa = async (req, res) => {
     const existingData = result.rows[0];
 
     // Delete all images from GCS
-    const imagesToDelete = [];
+    const imagesToDelete: string[] = [];
 
     if (existingData.gambar_cover) {
       imagesToDelete.push(existingData.gambar_cover);
@@ -591,7 +626,8 @@ const deleteDeskripsiDesa = async (req, res) => {
     });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(console.error);
-    console.error('Error deleting deskripsi desa:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Error deleting deskripsi desa:', message);
     return res.status(500).json({
       status: 'error',
       message: 'Internal server error',

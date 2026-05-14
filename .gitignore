@@ -7,3 +7,5 @@ app.yaml
 service-account.json
 
 decoy.txt
+
+dist

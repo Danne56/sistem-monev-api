@@ -96,7 +96,8 @@ router.post('/upload/gambar', upload.single('file'), async (req, res) => {
       url: gcsUrl,
     });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(500).json({ status: 'error', message });
   }
 });
 

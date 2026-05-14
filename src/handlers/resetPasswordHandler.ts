@@ -1,8 +1,19 @@
 import bcrypt from 'bcrypt';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { resetPasswordSchema } from './schema.js';
 
-const resetPassword = async (req, res) => {
+type ResetPasswordBody = {
+  email?: string;
+  resetCode?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+};
+
+const resetPassword = async (
+  req: Request<{}, {}, ResetPasswordBody>,
+  res: Response
+) => {
   const { email, resetCode, newPassword, confirmPassword } = req.body;
 
   // Validasi input
@@ -45,6 +56,13 @@ const resetPassword = async (req, res) => {
     const resetData = resetResult.rows[0];
 
     // Hash password baru
+    if (!newPassword) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Password baru wajib diisi',
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update password user

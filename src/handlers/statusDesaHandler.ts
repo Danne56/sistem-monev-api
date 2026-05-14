@@ -1,9 +1,19 @@
 import { nanoid } from 'nanoid';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { createStatusDesaSchema, updateStatusDesaSchema } from './schema.js';
 
+type StatusDesaBody = {
+  kd_desa?: string;
+  status?: string;
+  keterangan?: string | null;
+};
+
 // Fungsi untuk menambahkan status desa
-const addStatusDesa = async (req, res) => {
+const addStatusDesa = async (
+  req: Request<{}, {}, StatusDesaBody>,
+  res: Response
+) => {
   const { kd_desa, status, keterangan } = req.body;
   const kd_status = `STAT-${nanoid(10)}`;
 
@@ -67,7 +77,7 @@ const addStatusDesa = async (req, res) => {
 };
 
 // Fungsi untuk mendapatkan semua status desa
-const getAllStatusDesa = async (req, res) => {
+const getAllStatusDesa = async (_req: Request, res: Response) => {
   try {
     const query = `
     SELECT s.kd_status, s.status, s.keterangan, s.tanggal_update, dw.nama_desa AS nama_desa_wisata, dw.provinsi, dw.kabupaten
@@ -91,7 +101,10 @@ const getAllStatusDesa = async (req, res) => {
 };
 
 // Fungsi untuk mendapatkan status desa berdasarkan kd_status
-const getStatusDesaByKdStatus = async (req, res) => {
+const getStatusDesaByKdStatus = async (
+  req: Request<{ kd_status: string }>,
+  res: Response
+) => {
   const { kd_status } = req.params;
 
   try {
@@ -119,7 +132,10 @@ const getStatusDesaByKdStatus = async (req, res) => {
 };
 
 // Fungsi untuk mengupdate status desa
-const updateStatusDesa = async (req, res) => {
+const updateStatusDesa = async (
+  req: Request<{ kd_status: string }, {}, StatusDesaBody>,
+  res: Response
+) => {
   const { kd_status } = req.params;
   const { status, keterangan } = req.body;
 
@@ -180,7 +196,10 @@ const updateStatusDesa = async (req, res) => {
 };
 
 // Fungsi untuk menghapus status desa
-const deleteStatusDesa = async (req, res) => {
+const deleteStatusDesa = async (
+  req: Request<{ kd_status: string }>,
+  res: Response
+) => {
   const { kd_status } = req.params;
 
   const client = await pool.connect();

@@ -1,6 +1,6 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
-import express from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import authRoutes from './src/routes/authRoutes.js';
 import desaWisataRoutes from './src/routes/desaWisataRoutes.js';
@@ -11,7 +11,7 @@ import skorDesaRoutes from './src/routes/skorDesaRoutes.js';
 import statusDesaRoutes from './src/routes/statusDesaRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const app = express();
 app.use(express.json());
@@ -24,7 +24,7 @@ app.use(cors({ origin: '*' })); // Mengizinkan semua origin untuk akses API
 
 // Debug Logging
 if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(
       '\n[DEV]',
       req.method,
@@ -37,14 +37,14 @@ if (process.env.NODE_ENV === 'development') {
     next();
   });
 } else {
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(req.method, req.url); // Menampilkan metode dan URL dari request
     next();
   });
 }
 
 // Middleware untuk memastikan route development tidak dipakai di production
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   if (process.env.NODE_ENV === 'production') {
     // Blokir akses ke route mock data
     if (req.path.startsWith('/authentication/mock')) {
@@ -70,7 +70,7 @@ app.use(
   userRoutes
 );
 
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
     status: 'fail',
     message: 'Route not found',
@@ -78,20 +78,20 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((err, req, res, _next) => {
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const message = err instanceof Error ? err.message : 'Unknown error';
+  const stack = err instanceof Error ? err.stack : undefined;
   const errorResponse = {
     status: 'error',
     message:
-      process.env.NODE_ENV === 'production'
-        ? 'Internal server error'
-        : err.message,
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+      process.env.NODE_ENV === 'production' ? 'Internal server error' : message,
+    ...(process.env.NODE_ENV !== 'production' && stack ? { stack } : {}),
   };
   console.error(errorResponse);
   res.status(500).json(errorResponse);
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 process.on('uncaughtException', err => {
   console.error('There was an uncaught error', err);

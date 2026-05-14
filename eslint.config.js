@@ -19,7 +19,7 @@ export default [
     ],
   },
   {
-    files: ['**/*.js'],
+    files: ['**/*.js', '**/*.ts'],
     plugins: {
       prettier,
     },

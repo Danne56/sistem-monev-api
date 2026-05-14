@@ -1,10 +1,25 @@
 import { nanoid } from 'nanoid';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { desaWisataSchema } from '../handlers/schema.js';
 import slugify from '../utils/slugify.js';
 
+type DesaWisataBody = {
+  provinsi?: string;
+  kabupaten?: string;
+  nama_desa?: string;
+  nama_popular?: string;
+  alamat?: string;
+  pengelola?: string;
+  nomor_telepon?: string;
+  email?: string;
+};
+
 // Menambahkan desa wisata
-const addDesaWisata = async (req, res) => {
+const addDesaWisata = async (
+  req: Request<{}, {}, DesaWisataBody>,
+  res: Response
+) => {
   const {
     provinsi,
     kabupaten,
@@ -66,7 +81,7 @@ const addDesaWisata = async (req, res) => {
       });
     }
 
-    const baseSlug = slugify(nama_popular);
+    const baseSlug = slugify(nama_popular || '');
     let slug = baseSlug;
     let i = 1;
     while (true) {
@@ -132,7 +147,7 @@ const addDesaWisata = async (req, res) => {
 };
 
 // Mendapatkan semua desa wisata beserta status permintaan
-const getAllDesaWisata = async (req, res) => {
+const getAllDesaWisata = async (_req: Request, res: Response) => {
   try {
     const query = `
       SELECT dw.*, p.kd_permintaan, p.status_permintaan, u.is_verified
@@ -156,7 +171,10 @@ const getAllDesaWisata = async (req, res) => {
 };
 
 // Mendapatkan desa wisata berdasarkan kd_desa
-const getDesaWisataById = async (req, res) => {
+const getDesaWisataById = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   try {
     const query = 'SELECT * FROM desa_wisata WHERE kd_desa = $1';
@@ -181,7 +199,10 @@ const getDesaWisataById = async (req, res) => {
 };
 
 // Update desa wisata
-const updateDesaWisata = async (req, res) => {
+const updateDesaWisata = async (
+  req: Request<{ kd_desa: string }, {}, DesaWisataBody>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   const {
     provinsi,
@@ -229,7 +250,7 @@ const updateDesaWisata = async (req, res) => {
     }
 
     // Buat slug baru dari nama_desa
-    const baseSlug = slugify(nama_popular);
+    const baseSlug = slugify(nama_popular || '');
     let slug = baseSlug;
     let i = 1;
 
@@ -286,7 +307,10 @@ const updateDesaWisata = async (req, res) => {
 };
 
 // Hapus desa wisata
-const deleteDesaWisata = async (req, res) => {
+const deleteDesaWisata = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   const client = await pool.connect();
   try {
@@ -329,7 +353,10 @@ const deleteDesaWisata = async (req, res) => {
 };
 
 // Mendapatkan desa wisata berdasarkan email user
-const getDesaByUserEmail = async (req, res) => {
+const getDesaByUserEmail = async (
+  req: Request<{ email: string }>,
+  res: Response
+) => {
   const { email } = req.params;
   if (!email) {
     return res.status(400).json({
@@ -359,7 +386,7 @@ const getDesaByUserEmail = async (req, res) => {
   }
 };
 
-const getAllDesaWisataWithDetails = async (req, res) => {
+const getAllDesaWisataWithDetails = async (req: Request, res: Response) => {
   try {
     const byJenis = req.query.byJenis === 'true';
 
@@ -398,7 +425,10 @@ const getAllDesaWisataWithDetails = async (req, res) => {
   }
 };
 
-const getDesaWisataBySlug = async (req, res) => {
+const getDesaWisataBySlug = async (
+  req: Request<{ slug: string }>,
+  res: Response
+) => {
   const { slug } = req.params;
   if (!slug) {
     return res.status(400).json({

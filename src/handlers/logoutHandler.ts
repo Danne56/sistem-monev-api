@@ -1,7 +1,8 @@
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 
 // Fungsi untuk logout
-const logoutUser = async (req, res) => {
+const logoutUser = async (req: Request, res: Response) => {
   const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {

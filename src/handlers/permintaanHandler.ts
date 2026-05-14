@@ -1,9 +1,19 @@
 import { nanoid } from 'nanoid';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { createPermintaanSchema, updatePermintaanSchema } from './schema.js';
 
+type PermintaanBody = {
+  email?: string;
+  kd_desa?: string;
+  status_permintaan?: string;
+};
+
 // Menambahkan permintaan
-const addPermintaan = async (req, res) => {
+const addPermintaan = async (
+  req: Request<{}, {}, PermintaanBody>,
+  res: Response
+) => {
   const { email, kd_desa, status_permintaan } = req.body;
 
   // Validasi input
@@ -84,7 +94,7 @@ const addPermintaan = async (req, res) => {
   }
 };
 
-const getAllPermintaan = async (req, res) => {
+const getAllPermintaan = async (_req: Request, res: Response) => {
   try {
     const query = `
         SELECT p.kd_permintaan, p.email, dw.nama_desa AS nama_desa_wisata, p.created_at, p.status_permintaan, p.kd_desa
@@ -108,7 +118,10 @@ const getAllPermintaan = async (req, res) => {
   }
 };
 
-const getPermintaanById = async (req, res) => {
+const getPermintaanById = async (
+  req: Request<{ kd_permintaan: string }>,
+  res: Response
+) => {
   const { kd_permintaan } = req.params;
 
   try {
@@ -141,7 +154,10 @@ const getPermintaanById = async (req, res) => {
   }
 };
 
-const updatePermintaan = async (req, res) => {
+const updatePermintaan = async (
+  req: Request<{ kd_permintaan: string }, {}, PermintaanBody>,
+  res: Response
+) => {
   const { kd_permintaan } = req.params;
   const { status_permintaan } = req.body;
 
@@ -198,7 +214,10 @@ const updatePermintaan = async (req, res) => {
   }
 };
 
-const deletePermintaan = async (req, res) => {
+const deletePermintaan = async (
+  req: Request<{ kd_permintaan: string }>,
+  res: Response
+) => {
   const { kd_permintaan } = req.params;
 
   const client = await pool.connect();

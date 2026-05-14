@@ -1,9 +1,27 @@
 import dotenv from 'dotenv';
 import multer from 'multer';
+import type { NextFunction, Request, Response } from 'express';
 import pool from '../config/db.js';
 import { bucket } from '../utils/gcsConfig.js';
 import { deskripsiWisataSchema } from './schema.js';
-dotenv.config();
+dotenv.config({ quiet: true });
+
+type DeskripsiWisataRequest = Request;
+
+type DeskripsiWisataBody = {
+  kd_desa?: string;
+  atraksi?: unknown[];
+  penginapan?: unknown[];
+  paket_wisata?: unknown[];
+  suvenir?: unknown[];
+};
+
+const requireBucket = () => {
+  if (!bucket) {
+    throw new Error('GCS bucket is not initialized');
+  }
+  return bucket;
+};
 
 // Setup GCP Storage
 const storage = new Storage({
@@ -12,16 +30,13 @@ const storage = new Storage({
 const bucket = storage.bucket(process.env.BUCKET_NAME);
 
 // File size and type validation for Multer
-const fileFilter = (req, file, cb) => {
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   if (!file.mimetype.startsWith('image/')) {
-    return cb(new Error('Hanya file gambar yang diperbolehkan!'), false);
+    return cb(null, false);
   }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!allowedTypes.includes(file.mimetype)) {
-    return cb(
-      new Error('Hanya format JPG, PNG, dan WebP yang diperbolehkan!'),
-      false
-    );
+    return cb(null, false);
   }
   cb(null, true);
 };
@@ -36,7 +51,12 @@ const upload = multer({
 });
 
 // Error handling middleware for file uploads
-const handleUploadErrors = (err, req, res, next) => {
+const handleUploadErrors = (
+  err: unknown,
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
@@ -48,7 +68,7 @@ const handleUploadErrors = (err, req, res, next) => {
       status: 'fail',
       message: `Upload error: ${err.message}`,
     });
-  } else if (err) {
+  } else if (err instanceof Error) {
     return res.status(400).json({
       status: 'fail',
       message: err.message,
@@ -58,10 +78,11 @@ const handleUploadErrors = (err, req, res, next) => {
 };
 
 // Fungsi upload gambar ke GCS
-const uploadImageToGCS = async file => {
+const uploadImageToGCS = async (file: Express.Multer.File) => {
   try {
+    const gcsBucket = requireBucket();
     const fileName = `wisata/${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
-    const blob = bucket.file(fileName);
+    const blob = gcsBucket.file(fileName);
 
     const blobStream = blob.createWriteStream({
       resumable: false,
@@ -72,47 +93,50 @@ const uploadImageToGCS = async file => {
       },
     });
 
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       blobStream.on('error', err => {
         console.error('Upload error:', err.message);
         reject(new Error('Upload gambar gagal'));
       });
       blobStream.on('finish', () => {
-        const publicUrl = `${process.env.BUCKET_URL}/${bucket.name}/${blob.name}`;
+        const publicUrl = `${process.env.BUCKET_URL}/${gcsBucket.name}/${blob.name}`;
         console.log('File berhasil diupload:', publicUrl);
         resolve(publicUrl);
       });
       blobStream.end(file.buffer);
     });
   } catch (error) {
-    console.error('Error in uploadImageToGCS:', error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error in uploadImageToGCS:', message);
     throw error;
   }
 };
 
 // Fungsi hapus gambar dari GCS
-const deleteImageFromGCS = async publicUrl => {
+const deleteImageFromGCS = async (publicUrl?: string | null) => {
   if (!publicUrl || typeof publicUrl !== 'string') return;
 
   try {
+    const gcsBucket = requireBucket();
     const urlParts = new URL(publicUrl);
     const pathParts = urlParts.pathname.split('/');
     const fileName = pathParts.slice(2).join('/');
 
-    await bucket.file(fileName).delete();
+    await gcsBucket.file(fileName).delete();
     console.log(`File dihapus dari GCS: ${fileName}`);
   } catch (error) {
-    console.error(`Gagal menghapus file dari GCS:`, error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Gagal menghapus file dari GCS:`, message);
   }
 };
 
 // Helper function to handle arrays of entities with their images
 const processEntityWithImages = async (
-  entities = [],
-  files = [],
-  existingEntities = []
+  entities: any[] = [],
+  files: Express.Multer.File[] = [],
+  existingEntities: any[] = []
 ) => {
-  const results = [];
+  const results: any[] = [];
 
   for (let i = 0; i < entities.length; i++) {
     const entity = { ...entities[i] };
@@ -141,7 +165,8 @@ const processEntityWithImages = async (
         entity.gambar = existingEntities[i].gambar;
       }
     } catch (error) {
-      console.error(`Error processing images for entity ${i}:`, error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error processing images for entity ${i}:`, message);
     }
 
     entity.updated_at = new Date().toISOString();
@@ -156,7 +181,10 @@ const processEntityWithImages = async (
 };
 
 // Tambah deskripsi wisata
-const addDeskripsiWisata = async (req, res) => {
+const addDeskripsiWisata = async (
+  req: DeskripsiWisataRequest,
+  res: Response
+) => {
   let client;
   try {
     client = await pool.connect();
@@ -187,7 +215,7 @@ const addDeskripsiWisata = async (req, res) => {
       penginapan = [],
       paket_wisata = [],
       suvenir = [],
-    } = data;
+    } = data as DeskripsiWisataBody;
 
     const { error } = deskripsiWisataSchema.validate({
       atraksi,
@@ -202,11 +230,13 @@ const addDeskripsiWisata = async (req, res) => {
       });
     }
 
+    const uploadFiles =
+      req.files && !Array.isArray(req.files) ? req.files : undefined;
     const files = {
-      atraksi: req.files?.atraksi || [],
-      penginapan: req.files?.penginapan || [],
-      paket_wisata: req.files?.paket_wisata || [],
-      suvenir: req.files?.suvenir || [],
+      atraksi: uploadFiles?.atraksi || [],
+      penginapan: uploadFiles?.penginapan || [],
+      paket_wisata: uploadFiles?.paket_wisata || [],
+      suvenir: uploadFiles?.suvenir || [],
     };
 
     const atraksiWithImages = await processEntityWithImages(
@@ -249,7 +279,8 @@ const addDeskripsiWisata = async (req, res) => {
       },
     });
   } catch (err) {
-    if (err.code === '23505') {
+    const errorCode = (err as { code?: string }).code;
+    if (errorCode === '23505') {
       // PostgreSQL error code untuk duplicate key
       return res.status(400).json({
         status: 'fail',
@@ -257,7 +288,8 @@ const addDeskripsiWisata = async (req, res) => {
           'Deskripsi wisata untuk desa ini sudah ada. Gunakan endpoint /update',
       });
     }
-    console.error('Error adding deskripsi wisata:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Error adding deskripsi wisata:', message);
     return res
       .status(500)
       .json({ status: 'error', message: 'Internal server error' });
@@ -267,7 +299,7 @@ const addDeskripsiWisata = async (req, res) => {
 };
 
 // Ambil semua deskripsi wisata
-const getAllDeskripsiWisata = async (req, res) => {
+const getAllDeskripsiWisata = async (req: Request, res: Response) => {
   let client;
   try {
     client = await pool.connect();
@@ -281,14 +313,17 @@ const getAllDeskripsiWisata = async (req, res) => {
       `;
     }
 
-    const page = Math.max(parseInt(req.query.page) || 1, 1);
-    const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    const page = Math.max(Number.parseInt(String(req.query.page)) || 1, 1);
+    const limit = Math.min(
+      Math.max(Number.parseInt(String(req.query.limit)) || 10, 1),
+      100
+    );
     const offset = (page - 1) * limit;
 
     const countResult = await client.query(
       'SELECT COUNT(*) FROM deskripsi_wisata'
     );
-    const totalCount = parseInt(countResult.rows[0].count);
+    const totalCount = Number.parseInt(countResult.rows[0].count, 10);
 
     const paginatedQuery = `${query} LIMIT $1 OFFSET $2`;
     const result = await client.query(paginatedQuery, [limit, offset]);
@@ -314,7 +349,10 @@ const getAllDeskripsiWisata = async (req, res) => {
 };
 
 // Ambil deskripsi wisata by kd_desa
-const getDeskripsiWisataByKdDesa = async (req, res) => {
+const getDeskripsiWisataByKdDesa = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
@@ -349,7 +387,7 @@ const getDeskripsiWisataByKdDesa = async (req, res) => {
   }
 };
 
-const getRandomAtraksiWisata = async (req, res) => {
+const getRandomAtraksiWisata = async (_req: Request, res: Response) => {
   let client;
   try {
     client = await pool.connect();
@@ -387,7 +425,10 @@ const getRandomAtraksiWisata = async (req, res) => {
 };
 
 // Update deskripsi wisata
-const updateDeskripsiWisata = async (req, res) => {
+const updateDeskripsiWisata = async (
+  req: DeskripsiWisataRequest & Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
@@ -422,7 +463,11 @@ const updateDeskripsiWisata = async (req, res) => {
       penginapan = [],
       paket_wisata = [],
       suvenir = [],
-    } = data;
+    } = data as DeskripsiWisataBody & {
+      penjelasan_umum?: unknown;
+      fasilitas?: unknown;
+      dokumentasi_desa?: unknown;
+    };
 
     const { error } = deskripsiWisataSchema.validate({
       atraksi,
@@ -453,11 +498,13 @@ const updateDeskripsiWisata = async (req, res) => {
 
     const existingData = checkExisting.rows[0];
 
+    const updateFiles =
+      req.files && !Array.isArray(req.files) ? req.files : undefined;
     const files = {
-      atraksi: req.files?.atraksi || [],
-      penginapan: req.files?.penginapan || [],
-      paket_wisata: req.files?.paket_wisata || [],
-      suvenir: req.files?.suvenir || [],
+      atraksi: updateFiles?.atraksi || [],
+      penginapan: updateFiles?.penginapan || [],
+      paket_wisata: updateFiles?.paket_wisata || [],
+      suvenir: updateFiles?.suvenir || [],
     };
 
     const atraksiWithImages = await processEntityWithImages(
@@ -510,7 +557,7 @@ const updateDeskripsiWisata = async (req, res) => {
       message: 'Deskripsi wisata berhasil diperbarui',
       data: result.rows[0],
     });
-  } catch (err) {
+  } catch (err: unknown) {
     if (client) await client.query('ROLLBACK').catch(console.error);
     console.error('Error updating deskripsi wisata:', err);
     return res
@@ -522,7 +569,10 @@ const updateDeskripsiWisata = async (req, res) => {
 };
 
 // Hapus deskripsi wisata beserta gambarnya di GCS
-const deleteDeskripsiWisata = async (req, res) => {
+const deleteDeskripsiWisata = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
@@ -582,7 +632,8 @@ const deleteDeskripsiWisata = async (req, res) => {
     if (client) {
       await client.query('ROLLBACK').catch(console.error);
     }
-    console.error('Error deleting deskripsi wisata:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Error deleting deskripsi wisata:', message);
     return res
       .status(500)
       .json({ status: 'error', message: 'Internal server error' });
@@ -593,7 +644,7 @@ const deleteDeskripsiWisata = async (req, res) => {
   }
 };
 
-const uploadGambar = async (req, res) => {
+const uploadGambar = async (req: DeskripsiWisataRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -619,7 +670,10 @@ const uploadGambar = async (req, res) => {
   }
 };
 
-const patchDeskripsiWisata = async (req, res) => {
+const patchDeskripsiWisata = async (
+  req: DeskripsiWisataRequest & Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
@@ -651,7 +705,7 @@ const patchDeskripsiWisata = async (req, res) => {
       penginapan = [],
       paket_wisata = [],
       suvenir = [],
-    } = data;
+    } = data as DeskripsiWisataBody;
 
     await client.query('BEGIN');
 
@@ -672,9 +726,9 @@ const patchDeskripsiWisata = async (req, res) => {
     const currentData = existingData.rows[0];
 
     // Helper function untuk parse data
-    const parseArrayData = field => {
+    const parseArrayData = (field: unknown) => {
       if (Array.isArray(field)) return field;
-      return field ? JSON.parse(field) : [];
+      return field ? JSON.parse(field as string) : [];
     };
 
     // Gabungkan data baru dengan yang sudah ada
@@ -737,14 +791,20 @@ const patchDeskripsiWisata = async (req, res) => {
   }
 };
 
-const patchRemoveItemDeskripsiWisata = async (req, res) => {
+const patchRemoveItemDeskripsiWisata = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   let client;
 
   try {
     client = await pool.connect();
 
-    const { entity_type, item_id } = req.body;
+    const { entity_type, item_id } = req.body as {
+      entity_type?: string;
+      item_id?: number | string;
+    };
 
     // Validasi input
     if (!entity_type || item_id === undefined) {
@@ -795,7 +855,7 @@ const patchRemoveItemDeskripsiWisata = async (req, res) => {
     const currentData = existingData.rows[0];
 
     // Parse data dengan error handling
-    let currentArray;
+    let currentArray: Array<{ id?: number; gambar?: string | string[] }>;
     try {
       const rawData = currentData[entity_type];
 

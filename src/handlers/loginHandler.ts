@@ -1,12 +1,18 @@
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { loginSchema } from './schema.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
-const loginUser = async (req, res) => {
+type LoginBody = {
+  email?: string;
+  password?: string;
+};
+
+const loginUser = async (req: Request<{}, {}, LoginBody>, res: Response) => {
   const { email, password } = req.body;
 
   // Validasi input
@@ -42,6 +48,13 @@ const loginUser = async (req, res) => {
     }
 
     // Cek password
+    if (!password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Password wajib diisi',
+      });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res.status(401).json({

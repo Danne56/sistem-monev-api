@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 
 // Konfigurasi nodemailer
@@ -10,7 +11,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const verifyAccount = async (req, res) => {
+const verifyAccount = async (
+  req: Request<{ email: string }>,
+  res: Response
+) => {
   const { email } = req.params;
 
   const client = await pool.connect();
@@ -37,6 +41,13 @@ const verifyAccount = async (req, res) => {
     await client.query(updateQuery, [newVerificationStatus, email]);
     client.release();
 
+    if (!process.env.EMAIL_USER) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'EMAIL_USER tidak tersedia',
+      });
+    }
+
     // Kirim notifikasi email
     const mailOptions = {
       from: {
@@ -61,7 +72,7 @@ Terima kasih,
 Tim Sistem Monev`,
     };
 
-    transporter.sendMail(mailOptions, error => {
+    transporter.sendMail(mailOptions, (error: Error | null) => {
       if (error) {
         console.error('Error sending verification email:', error);
         return res.status(500).json({

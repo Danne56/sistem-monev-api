@@ -1,12 +1,23 @@
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { nanoid } from 'nanoid';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { registerSchema } from './schema.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
-const registerUser = async (req, res) => {
+type RegisterBody = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+};
+
+const registerUser = async (
+  req: Request<{}, {}, RegisterBody>,
+  res: Response
+) => {
   const { fullName, email, password, role } = req.body;
 
   // Validasi input menggunakan Joi
@@ -42,7 +53,16 @@ const registerUser = async (req, res) => {
     }
 
     // Hash password
-    const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
+    if (!password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Password wajib diisi',
+      });
+    }
+
+    const saltRounds = process.env.SALT_ROUNDS
+      ? Number.parseInt(process.env.SALT_ROUNDS, 10)
+      : 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Generate ID unik menggunakan nanoid (misalnya panjang 10 karakter)
@@ -82,7 +102,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req: Request, res: Response) => {
   const client = await pool.connect();
   const includeDesa = req.query.includeDesa === 'true';
 

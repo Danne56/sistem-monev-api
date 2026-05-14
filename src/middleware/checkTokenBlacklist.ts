@@ -1,6 +1,11 @@
+import type { NextFunction, Request, Response } from 'express';
 import pool from '../config/db.js';
 
-const checkTokenBlacklist = async (req, res, next) => {
+const checkTokenBlacklist = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {

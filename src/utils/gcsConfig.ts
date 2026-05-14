@@ -1,10 +1,16 @@
-import { Storage } from '@google-cloud/storage';
+import { Storage, type Bucket } from '@google-cloud/storage';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ quiet: true });
+
+type GcsCredentials = {
+  client_email?: string;
+  private_key?: string;
+  project_id?: string;
+};
 
 // Helper to decode base64 credentials
-function getCredentialsFromBase64() {
+function getCredentialsFromBase64(): GcsCredentials | null {
   if (!process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64) return null;
 
   try {
@@ -13,9 +19,10 @@ function getCredentialsFromBase64() {
       'base64'
     ).toString('utf-8');
 
-    return JSON.parse(decoded);
+    return JSON.parse(decoded) as GcsCredentials;
   } catch (err) {
-    console.error('Failed to parse base64 credentials:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('Failed to parse base64 credentials:', message);
     return null;
   }
 }
@@ -48,15 +55,16 @@ function initializeGCS() {
 }
 
 // Export initialized instances or null on failure
-let storage = null;
-let bucket = null;
+let storage: Storage | null = null;
+let bucket: Bucket | null = null;
 
 try {
   const gcs = initializeGCS();
   storage = gcs.storage;
   bucket = gcs.bucket;
 } catch (err) {
-  console.error('GCS Initialization Error:', err.message);
+  const message = err instanceof Error ? err.message : String(err);
+  console.error('GCS Initialization Error:', message);
   console.log('Server will continue without GCS functionality');
 }
 

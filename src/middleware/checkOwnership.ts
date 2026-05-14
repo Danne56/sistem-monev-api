@@ -1,6 +1,13 @@
+import type { NextFunction, Request, Response } from 'express';
 import pool from '../config/db.js';
 
-const checkOwnership = async (req, res, next) => {
+type AuthenticatedRequest = Request & { user?: { email?: string } };
+
+const checkOwnership = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   // 🔍 DEBUG: Log semua kemungkinan lokasi kd_desa
   console.log('=== DEBUG CHECKOWNERSHIP ===');
   console.log('req.params:', req.params);
@@ -23,7 +30,8 @@ const checkOwnership = async (req, res, next) => {
       kd_desa = parsedData.kd_desa;
       console.log('kd_desa from parsed data:', kd_desa);
     } catch (err) {
-      console.log('Error parsing req.body.data:', err.message);
+      const message = err instanceof Error ? err.message : String(err);
+      console.log('Error parsing req.body.data:', message);
     }
   }
 

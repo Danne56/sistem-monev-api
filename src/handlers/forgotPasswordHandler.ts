@@ -1,9 +1,14 @@
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 
 // Import schema validasi
 import { forgotPasswordSchema } from './schema.js';
+
+type ForgotPasswordBody = {
+  email?: string;
+};
 
 // Setup transporter Nodemailer
 const transporter = nodemailer.createTransport({
@@ -14,7 +19,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const forgotPassword = async (req, res) => {
+const forgotPassword = async (
+  req: Request<{}, {}, ForgotPasswordBody>,
+  res: Response
+) => {
   const { email } = req.body;
 
   // Validasi input
@@ -58,12 +66,19 @@ const forgotPassword = async (req, res) => {
     await pool.query(upsertQuery, [email, userId, resetCode, expiresAt]);
 
     // Kirim email dengan kode reset
+    if (!process.env.EMAIL_USER) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'EMAIL_USER tidak tersedia',
+      });
+    }
+
     const mailOptions = {
       from: {
         name: 'Sistem Monev',
         address: process.env.EMAIL_USER,
       },
-      to: email,
+      to: email || '',
       subject: 'Kode Reset Password',
       text: `Halo ${fullName},
 
@@ -79,7 +94,7 @@ Terima kasih,
 Tim Sistem Monev`,
     };
 
-    transporter.sendMail(mailOptions, (err, _info) => {
+    transporter.sendMail(mailOptions, (err: Error | null) => {
       if (err) {
         console.error('Error mengirim email:', err);
         return res.status(500).json({

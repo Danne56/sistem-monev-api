@@ -1,6 +1,20 @@
 import jwt from 'jsonwebtoken';
+import type { NextFunction, Request, Response } from 'express';
 
-const authenticateToken = (req, res, next) => {
+type JwtPayload = {
+  id?: string | number;
+  fullname?: string;
+  email?: string;
+  role?: string;
+};
+
+type AuthenticatedRequest = Request & { user?: JwtPayload };
+
+const authenticateToken = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   const token = req.header('Authorization')?.split(' ')[1]; // Ambil token dari header
   if (!token) {
     return res.status(401).json({
@@ -16,7 +30,14 @@ const authenticateToken = (req, res, next) => {
         ? process.env.JWT_SECRET_DEV
         : process.env.JWT_SECRET;
 
-    const verified = jwt.verify(token, secret);
+    if (!secret) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Secret key tidak tersedia.',
+      });
+    }
+
+    const verified = jwt.verify(token, secret) as JwtPayload;
     req.user = verified; // Simpan informasi user ke `req`
     next();
   } catch {
@@ -26,8 +47,8 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-const checkRole = requiredRole => {
-  return (req, res, next) => {
+const checkRole = (requiredRole: string) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     // Skip role check in development
     if (process.env.NODE_ENV === 'development') {
       console.log(`[DEV] Skipping role check for ${requiredRole}`);
@@ -35,8 +56,8 @@ const checkRole = requiredRole => {
     }
 
     // Proceed with role check in production
-    const userRole = req.user.role;
-    if (userRole !== requiredRole) {
+    const userRole = req.user?.role;
+    if (!userRole || userRole !== requiredRole) {
       return res.status(403).json({
         status: 'fail',
         message: `Hanya role ${requiredRole} yang dapat mengakses endpoint ini.`,
@@ -46,7 +67,7 @@ const checkRole = requiredRole => {
   };
 };
 
-const verifyToken = async (req, res) => {
+const verifyToken = async (req: AuthenticatedRequest, res: Response) => {
   res.status(200).json({
     status: 'success',
     data: req.user, // Data user dari JWT

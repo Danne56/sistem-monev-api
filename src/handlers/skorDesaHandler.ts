@@ -1,6 +1,7 @@
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 
-const getKategoriDesa = rata_rata => {
+const getKategoriDesa = (rata_rata: number) => {
   if (rata_rata > 90) {
     return 'Mandiri';
   } else if (rata_rata >= 75 && rata_rata <= 90) {
@@ -12,7 +13,20 @@ const getKategoriDesa = rata_rata => {
   }
 };
 
-const addSkorDesaWisata = async (req, res) => {
+type SkorBody = {
+  kd_desa?: string;
+  partisipasi_masyarakat?: number | string;
+  keragaman_paket_wisata?: number | string;
+  akses_tempat_wisata?: number | string;
+  keramahan_difabel?: number | string;
+  fasilitas_tempat_wisata?: number | string;
+  produk_tempat_wisata?: number | string;
+};
+
+const addSkorDesaWisata = async (
+  req: Request<{}, {}, SkorBody>,
+  res: Response
+) => {
   const {
     kd_desa,
     partisipasi_masyarakat,
@@ -118,7 +132,10 @@ const addSkorDesaWisata = async (req, res) => {
   }
 };
 
-const updateSkorDesaWisata = async (req, res) => {
+const updateSkorDesaWisata = async (
+  req: Request<{ kd_desa: string }, {}, SkorBody>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
   const {
     partisipasi_masyarakat,
@@ -211,7 +228,7 @@ const updateSkorDesaWisata = async (req, res) => {
   }
 };
 
-const getAllSkorDesaWisata = async (req, res) => {
+const getAllSkorDesaWisata = async (_req: Request, res: Response) => {
   try {
     // Gunakan LEFT JOIN agar semua desa ditampilkan,
     // termasuk yang belum memiliki skor
@@ -265,7 +282,10 @@ const getAllSkorDesaWisata = async (req, res) => {
   }
 };
 
-const getSkorDesaWisataByID = async (req, res) => {
+const getSkorDesaWisataByID = async (
+  req: Request<{ kd_desa: string }>,
+  res: Response
+) => {
   const { kd_desa } = req.params;
 
   try {

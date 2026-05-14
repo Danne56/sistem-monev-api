@@ -1,6 +1,15 @@
+import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 
-const verifyResetCode = async (req, res) => {
+type VerifyResetBody = {
+  email?: string;
+  resetCode?: string;
+};
+
+const verifyResetCode = async (
+  req: Request<{}, {}, VerifyResetBody>,
+  res: Response
+) => {
   const { email, resetCode } = req.body;
 
   try {

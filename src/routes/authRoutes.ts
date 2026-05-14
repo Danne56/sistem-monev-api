@@ -31,7 +31,7 @@ router.get('/me', authenticateToken, verifyToken);
 
 // Hanya di development
 if (process.env.NODE_ENV === 'development') {
-  router.post('/mock-login', (req, res) => {
+  router.post('/mock-login', (_req, res) => {
     // Data user dummy
     const mockUser = {
       id: 999,
