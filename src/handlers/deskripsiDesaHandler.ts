@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
+import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
 import multer from 'multer';
-import type { NextFunction, Request, Response } from 'express';
 import pool from '../config/db.js';
 import { bucket } from '../utils/gcsConfig.js';
 dotenv.config({ quiet: true });
@@ -14,12 +14,6 @@ const requireBucket = () => {
   }
   return bucket;
 };
-
-// Setup GCP Storage
-const storage = new Storage({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-});
-const bucket = storage.bucket(process.env.BUCKET_NAME);
 
 // Validation Schema
 const deskripsiDesaSchema = Joi.object({
@@ -514,7 +508,9 @@ const updateDeskripsiDesa = async (
 
     const galeri_desa = [...imagesToKeep];
     if (updateFiles?.galeri_desa?.length) {
-      const newGalleryImages = await uploadMultipleFiles(updateFiles.galeri_desa);
+      const newGalleryImages = await uploadMultipleFiles(
+        updateFiles.galeri_desa
+      );
       galeri_desa.push(...newGalleryImages);
       uploadedUrls.push(...newGalleryImages);
     }

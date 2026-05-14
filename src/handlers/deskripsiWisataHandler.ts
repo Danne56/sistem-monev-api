@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import multer from 'multer';
 import type { NextFunction, Request, Response } from 'express';
+import multer from 'multer';
 import pool from '../config/db.js';
 import { bucket } from '../utils/gcsConfig.js';
 import { deskripsiWisataSchema } from './schema.js';
@@ -22,12 +22,6 @@ const requireBucket = () => {
   }
   return bucket;
 };
-
-// Setup GCP Storage
-const storage = new Storage({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-});
-const bucket = storage.bucket(process.env.BUCKET_NAME);
 
 // File size and type validation for Multer
 const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
