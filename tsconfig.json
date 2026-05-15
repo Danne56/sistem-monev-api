@@ -11,7 +11,12 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "baseUrl": ".",
+    "types": ["@cloudflare/workers-types"], //
+    "paths": {
+      "cloudflare:node": ["node_modules/@cloudflare/workers-types/2023-07-01"]
+    }
   },
   "include": ["server.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

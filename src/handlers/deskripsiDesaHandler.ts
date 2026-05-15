@@ -3,12 +3,13 @@ import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
 import multer from 'multer';
 import pool from '../config/db.js';
-import { bucket } from '../utils/gcsConfig.js';
+import { initializeLazyGCS } from '../utils/gcsConfig.js';
 dotenv.config({ quiet: true });
 
 type DeskripsiDesaRequest = Request;
 
 const requireBucket = () => {
+  const { bucket } = initializeLazyGCS();
   if (!bucket) {
     throw new Error('GCS bucket is not initialized');
   }

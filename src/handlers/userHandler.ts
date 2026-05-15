@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import { nanoid } from 'nanoid';
 import type { Request, Response } from 'express';

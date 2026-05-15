@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import type { Request, Response } from 'express';
 import pool from '../config/db.js';
 import { resetPasswordSchema } from './schema.js';

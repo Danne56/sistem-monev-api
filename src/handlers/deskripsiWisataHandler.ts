@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import type { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import pool from '../config/db.js';
-import { bucket } from '../utils/gcsConfig.js';
+import { initializeLazyGCS } from '../utils/gcsConfig.js';
 import { deskripsiWisataSchema } from './schema.js';
 dotenv.config({ quiet: true });
 
@@ -17,6 +17,7 @@ type DeskripsiWisataBody = {
 };
 
 const requireBucket = () => {
+  const { bucket } = initializeLazyGCS();
   if (!bucket) {
     throw new Error('GCS bucket is not initialized');
   }

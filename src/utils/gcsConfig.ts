@@ -58,14 +58,18 @@ function initializeGCS() {
 let storage: Storage | null = null;
 let bucket: Bucket | null = null;
 
-try {
-  const gcs = initializeGCS();
-  storage = gcs.storage;
-  bucket = gcs.bucket;
-} catch (err) {
-  const message = err instanceof Error ? err.message : String(err);
-  console.error('GCS Initialization Error:', message);
-  console.log('Server will continue without GCS functionality');
-}
+const initializeLazyGCS = () => {
+  if (storage && bucket) return { storage, bucket };
+  try {
+    const gcs = initializeGCS();
+    storage = gcs.storage;
+    bucket = gcs.bucket;
+    return { storage, bucket };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('GCS Initialization Error:', message);
+    return { storage: null, bucket: null };
+  }
+};
 
-export { bucket, initializeGCS, storage };
+export { bucket, initializeGCS, storage, initializeLazyGCS };

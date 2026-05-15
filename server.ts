@@ -10,6 +10,8 @@ import permintaanRoutes from './src/routes/permintaanRoutes.js';
 import skorDesaRoutes from './src/routes/skorDesaRoutes.js';
 import statusDesaRoutes from './src/routes/statusDesaRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
+import { createServer } from 'node:http';
+import { httpServerHandler } from 'cloudflare:node';
 
 dotenv.config({ quiet: true });
 
@@ -91,11 +93,14 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json(errorResponse);
 });
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
+// const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 process.on('uncaughtException', err => {
   console.error('There was an uncaught error', err);
   process.exit(1); // Keluar dengan status error
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = createServer(app);
+
+export default httpServerHandler(server as any);

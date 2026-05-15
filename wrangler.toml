@@ -1,0 +1,8 @@
+name = "sistem-monev"
+main = "dist/server.js"
+compatibility_date = "2026-05-14"
+
+compatibility_flags = [
+  "nodejs_compat",
+  "enable_nodejs_http_server_modules"
+]
