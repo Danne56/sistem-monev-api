@@ -60,7 +60,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Routes
-app.use('/auth', authRoutes);
+app.use('/authentication', authRoutes);
 app.use(
   '/api',
   desaWisataRoutes,
